@@ -1,1 +1,6 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
+@import "../node_modules/react-day-picker/lib/style";
+@import "../node_modules/react-time-picker/dist/TimePicker.css";
+@import "../node_modules/react-clock/dist/Clock.css";
+@import "./component_styling/homepage.scss";
+@import "./component_styling/profile.scss";
