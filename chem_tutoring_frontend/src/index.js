@@ -1,0 +1,38 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import reportWebVitals from './reportWebVitals';
+import './App.css'
+import './main.scss'
+import axios from 'axios'
+import AppRouter from './Router'
+
+export const axios_instance = axios.create({
+  baseURL: 'http://127.0.0.1:5000'
+});
+
+axios_instance.interceptors.request.use(
+function(config) {
+  const token = localStorage.getItem("token"); 
+  if (token) {
+    config.headers["Authorization"] = 'Bearer ' + token;
+  }
+  return config;
+},
+function(error) {
+  return Promise.reject(error);
+}
+);
+
+
+ReactDOM.render(
+  <React.StrictMode>
+    <AppRouter />
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://it.ly/CRA-vitals
+reportWebVitals();
