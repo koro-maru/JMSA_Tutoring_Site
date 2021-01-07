@@ -17,7 +17,7 @@ from datetime import *
 app = flask.Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-app.config['SECRET_KEY'] = '\xfd{H\xe5<\x95\xf9\xe3\x96.5\xd1\x01O<!\xd5\xa2\xa0\x9fR"\xa1\xa8'
+app.config['SECRET_KEY'] ='/SADOKPKASONFAI^%&KLASJFHYG*/AS()UJF*()IJKAMSHBUG&F(A*ASH(&A*(F)(ASFFAS/UHIONJBAFSKNJBSAUHgbUASHIDIJA(S)/'
 CONNECTION = connect("testing", host=os.getenv("CONNECTION_STRING"))
 
 CORS(app, support_credentials=True)
@@ -40,55 +40,70 @@ def parse_dates(input_date_list):
 
 
 @app.route('/user/<username>/sessions', methods=['GET'])
+@cross_origin(supports_credentials=True)
 @flask_praetorian.auth_required
-def all_sessions():
+def all_sessions(username):
     if "tutor" in flask_praetorian.current_user().rolenames:
-        tutor_sessions = TutoringSession.objects(tutor=flask_praetorian.current_user()._id).all()
+        tutor_sessions = TutoringSession.objects(tutor__id=flask_praetorian.current_user().id).all()
     if "student" in flask_praetorian.current_user().rolenames:
-        tutor_sessions = TutoringSession.objects(student=flask_praetorian.current_user()._id).all()
+        tutor_sessions = TutoringSession.objects.find(student__id=flask_praetorian.current_user().id).all()
+    print(tutor_sessions)
     return tutor_sessions.to_json()
 
 
 @app.route('/user/sessions/new', methods=['GET', 'POST'])
+@cross_origin(supports_credentials=True)
 @flask_praetorian.auth_required
 def create_session():
     try:
         tutoring_session = TutoringSession()
-        datetime_formatted = datetime.strptime(request.json['data'], "%m/%d/%Y %I:%M %p")
+        datetime_formatted = datetime.strptime(request.json['date'], "%m/%d/%Y %I:%M %p")
         tutoring_session.date = datetime_formatted
         tutoring_session.subject = request.json['subject']
 
         if "tutor" in flask_praetorian.current_user().roles:
-            tutoring_session.tutor = flask_praetorian.current_user()
-            tutoring_session.student = User.objects.get(username=request.json['other_user.data'])
+            tutor = flask_praetorian.current_user()
+            student = User.objects.get(username=request.json['other_user']['username'])
         else:
-            tutoring_session.student = flask_praetorian.current_user()
-            tutoring_session.tutor = User.objects.get(username=request.json['other_user.data'])
+            student = flask_praetorian.current_user()
+            tutor = User.objects.get(username=request.json['other_user']['username'])
+
+        tutoring_session.tutor = {
+            "id": tutor.id,
+            "username": tutor.username
+        }
+        
+        tutoring_session.student = {
+            "id": student.id,
+            "username": student.username
+        }
+        
         tutoring_session.save()
+        tutor.sessions.append(tutoring_session)
+        student.sessions.append(tutoring_session)
 
-        tutoring_session.tutor.sessions.append(tutoring_session)
-        tutoring_session.student.sessions.append(tutoring_session)
-
-        tutoring_session.tutor.save()
-        tutoring_session.student.save()
+        tutor.save()
+        student.save()
         return tutoring_session.to_json()
     except Exception as e:
+        print(str(e))
         return str(e)
 
 
 @app.route('/user/sessions/<id>/edit', methods=['GET', 'POST'])
+@cross_origin(supports_credentials=True)
 @flask_praetorian.auth_required
 def session_edit(id):
     session_to_edit = TutoringSession.objects.get(id=id)
 
     if request.method == "POST":
-        if request.json['date']:
             request.json['date'] = datetime.strptime(request.json['date'], "%m/%d/%Y %I:%M %p")
+            session_to_edit.date=request.json['date']
             session_to_edit.save()
             return session_to_edit.to_json();
     if request.method == "DELETE":
         session_to_edit.delete()
-
+            
     if request.method == "GET":
         return session_to_edit.to_json()
 
@@ -102,29 +117,24 @@ def protected():
                          )
 
 
-@app.route('/user/tutor/dashboard', methods=['GET'])
-@flask_praetorian.roles_required('tutor')
-def authorized_tutor():
-    print(flask_praetorian.current_user().username)
-    return flask.jsonify(flask_praetorian.current_user().username)
-
-
 @app.route('/user/sign_in', methods=['POST'])
 @cross_origin(supports_credentials=True)
 def login_page():
     try:
         if request.method == "POST":
             user = guard.authenticate(username=request.json['username'], password=request.json['password'])
-            user.id = str(user.id)
-            ret = {"access_token": guard.encode_jwt_token(user)}
-            session['jwt_token'] = jsonify(ret)
-            return (jsonify(ret))
+            if(user):
+                user.id = str(user.id)
+                ret = {"access_token": guard.encode_jwt_token(user, override_access_lifespan=None, override_refresh_lifespan=None, bypass_user_check=False, is_registration_token=False, is_reset_token=False, username=user.username)}
+                session['jwt_token'] = ret
+                print(session['jwt_token'])
+                return jsonify(ret)
         else:
             return "<h1>Invalid format. Try again<h1>"
 
     except Exception as e:
         traceback.print_exc()
-        return "Exception: " + str(e)
+        return 'Invalid credentials', 401
 
 
 @app.route('/user/sign_up', methods=['GET', 'POST'])
@@ -156,25 +166,25 @@ def api_sign_up():
 
 
 @app.route('/user/<username>', methods=['GET'])
+@cross_origin(supports_credentials=True)
 def get_user(username):
     user = User.objects.get(username=username)
     return user.to_json()
 
 
 @app.route('/user/<username>/edit', methods=['GET', 'POST', 'DELETE'])
+@cross_origin(supports_credentials=True)
 def user_edit(username):
     user_to_edit = User.objects.get(username=username)
     if request.method == "POST":
-        if request.form.getlist('availability'):
-            availabilities = request.form.getlist('availability')
-            parse_dates(availabilities)
 
-            user_to_edit.full_name = request.json['full_name'],
-            user_to_edit.email = request.json['email'],
-            user_to_edit.username = request.json['username'],
-            user_to_edit.us_phone_number = request.json['us_phone_number'],
-            user_to_edit.biography = request.json['biography'],
-            user_to_edit.availability = parse_dates(request.json['availability'].split(", ")),
+        user_to_edit.availability = parse_dates(request.json['availability'])
+        user_to_edit.full_name = request.json['full_name']
+        user_to_edit.email = request.json['email']
+        user_to_edit.username = request.json['username']
+        user_to_edit.us_phone_number = request.json['us_phone_number']
+        user_to_edit.biography = request.json['biography']
+     
 
         user_to_edit.save()
         return user_to_edit.to_json()
@@ -186,8 +196,17 @@ def user_edit(username):
         return user_to_edit.to_json()
 
 
-@app.route('/tutors', methods=['GET'])
-@flask_praetorian.roles_required('admin')
+@app.route('/user/students', methods=['GET'])
+@cross_origin(supports_credentials=True)
+@flask_praetorian.auth_required
+def student_all():
+    students = User.objects(roles__contains='student').all()
+    return students.to_json()
+
+
+@app.route('/user/tutors', methods=['GET'])
+@cross_origin(supports_credentials=True)
+@flask_praetorian.auth_required
 def tutor_all():
     tutors = User.objects(roles__contains='tutor').all()
     return tutors.to_json()
