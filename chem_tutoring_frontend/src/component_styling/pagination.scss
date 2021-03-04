@@ -1,0 +1,44 @@
+$cool-blue: rgb(84, 116, 223);
+$off-white: rgb(243, 233, 210);
+
+
+.pagination {
+    display: flex;
+    flex-direction: row;;
+    justify-content: center;
+    text-align: center;
+    margin-top: 1.5rem;
+    padding: .2rem;
+}
+
+
+.previous,
+.next {
+    color: white;
+    border-radius: 0.5rem;
+    background-color: $cool-blue;
+    padding: 0.3rem;
+}
+
+.disabled {
+    background-color: darken($cool-blue, 30%);
+    border-color: #ddd;
+}
+
+.pagination > li > a{
+    margin-left: .5rem;
+    margin-right: .5rem;
+    text-align: center;
+    margin-right: .4rem;
+    display: inline-block;
+}
+
+.pagination > .active > a {
+    color: cornflowerblue
+}
+
+.pagination > li > a:hover {
+    background-color: darken($cool-blue, 10%);
+    border-radius: .4rem;
+}
+

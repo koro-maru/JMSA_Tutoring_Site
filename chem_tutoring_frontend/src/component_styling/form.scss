@@ -1,0 +1,95 @@
+.form-comp{
+    padding: 3em;
+    background-color: rgba(255, 255, 255, 0.192);
+    margin: 0 auto;
+    width: 50%;
+}
+
+.select {
+    color: black;
+}
+
+.dropdown {
+    margin-bottom: 1rem;
+}
+.dropdown, .select {
+    position: static;
+}
+
+.dropdown-toggle {
+    margin: 0 auto;
+}
+
+.dropdown span {
+    color: white;
+}
+
+.center {
+    margin: 0 auto;
+}
+
+.react-time-picker__wrapper{
+    margin: .5rem;
+   background-color: white;
+    border:  none !important; 
+}
+
+.react-time-picker__inputGroup__divider {
+    color: black !important;
+}
+
+.react-select__menu {
+    color: black;
+}
+table {
+    width: 90%;
+    margin: 0 auto;
+}
+
+.checkboxes {
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+}
+
+.radios {
+    margin: 0 auto;
+}
+
+.form-label {
+    margin: 1rem;
+    font-size: 1.2rem;
+}
+.form-check-label {
+    margin-right: .5rem;
+}
+
+.search-input {
+    margin: 0 auto;
+    width: 80%;
+}
+
+.calendar {
+    color: black;
+    background-color: rgba(255, 255, 255, 0.308);
+}
+
+.DayPicker-Weekday,
+.daypicker span {
+    color: black;
+}
+
+
+.react-select__single-value,
+
+.react-select__placeholder {
+    position: static;
+    top: auto;
+    left: auto;
+    transform: none;
+    max-width: none;
+  }
+
+  .react-select__value-container > div {
+    width: auto !important;
+  }

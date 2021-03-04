@@ -1,19 +1,23 @@
 from mongoengine import *
 from bson.json_util import loads, dumps
-
 allowed_roles = ["admin", "tutor", "student"]
 
 
 class User(Document):
     full_name = StringField(required=True)
-    email = EmailField(required=True)
+    id=ObjectIdField(primary_key=True)
+    email = EmailField(unique=True,required=True)
     username = StringField(unique=True, required=True)
     us_phone_number = StringField(required=False)
+    tutor_subjects=ListField(StringField(), default=list)
+    problem_subjects=ListField(StringField(), default=list)
     hashed_password = StringField(required=True)
+    messages = ListField(ReferenceField("Message"), default=list)
     sessions = ListField(ReferenceField("TutoringSession"), default=list)
     availability = ListField(DateTimeField(), required=False)
     biography = StringField(required=False)
     roles = StringField(required=False)
+    profile_picture=StringField(required=False)
     is_active = BooleanField()
 
     @property
@@ -36,8 +40,10 @@ class User(Document):
     @classmethod
     def lookup(cls, username):
         try:
-            return User.objects(username=username).get()
+            print(User.objects.filter(Q(username=username)|Q(email=username)).get().to_json())
+            return User.objects.filter(Q(username=username)|Q(email=username)).get()
         except DoesNotExist:
+            print('no')
             return None
 
     @classmethod
@@ -46,6 +52,8 @@ class User(Document):
             return User.objects(id=loads(id)).get()
         except DoesNotExist:
             return None
+
+    
 
     def is_valid(self):
         return self.is_active

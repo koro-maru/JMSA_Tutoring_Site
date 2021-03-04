@@ -1,55 +1,31 @@
-$t-gray-light: rgba(116, 19, 19, 0.692);
-$t-gray-dark: rgba(56, 47, 47, 0.555);
+$t-gray-light: rgb(116, 19, 19);
+$t-gray-dark: rgb(56, 47, 47);
 $dark-gray: #282c34;
 
-body,
-html {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
-        "Droid Sans", "Helvetica Neue", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: $dark-gray;
+
+h1 {
+    font-size: 4em;
 }
 
 h2 {
     font-size: 3vw;
 }
 .header {
-    background-color: #282c34;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     font-size: calc(10px + 2vmin);
-    color: white;
   }
   
-.align-even {
-    text-align: left;
-  }
-  
-  .align-odd {
-    text-align: right;
-  }
+
 
 section {
     margin: 0.5em;
-}
-
-.align-even {
-    background-color: $t-gray-dark;
     padding: 1em;
+    text-align: center;
 }
 
-.align-odd {
-    background-color: $t-gray-light;
-    padding: 1em;
-}
 
-.align-odd {
-}
-h1 {
-    font-size: 4em;
-}
+

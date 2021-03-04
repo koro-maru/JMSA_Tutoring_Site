@@ -1,11 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 import reportWebVitals from './reportWebVitals';
-import './App.css'
-import './main.scss'
+import './component_styling/main.scss'
 import axios from 'axios'
-import AppRouter from './Router'
+import AppRouter from './Components/Router'
 
 export const axios_instance = axios.create({
   baseURL: 'http://127.0.0.1:5000'

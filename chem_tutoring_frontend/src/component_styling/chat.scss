@@ -1,0 +1,56 @@
+.message_form {
+    padding: 3em;
+    background-color: rgba(255, 255, 255, 0.192);
+    width: 50%;
+    margin: 0 auto;
+}
+
+.select {
+    width: 30%
+}
+
+.message_form_input {
+    margin-top: .8rem;
+    margin-bottom: .8rem;
+}
+
+.message_list {
+    display: flexbox;
+}
+
+.flavor-text {
+font-style: italic;
+
+}
+
+.message {
+    padding: .8%;
+}
+.message_text {
+    white-space: pre-wrap; /* css-3 */
+    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+    white-space: -pre-wrap; /* Opera 4-6 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
+
+.message_time {
+display: block;
+color: rgb(255, 235, 235)
+}
+
+.sent, .recieved {
+    border-radius: .3rem;
+    margin: .5%;
+    display: block;
+}
+
+.sent {
+    background-image: linear-gradient(rgb(52, 94, 231), rgb(35, 62, 182));
+    align-content: flex-start;
+}
+
+.recieved {
+    background-image: linear-gradient(rgb(145, 52, 63),rgb(70, 15, 21));
+    align-content: flex-end;
+}

@@ -1,28 +1,46 @@
 import os
 import re
-
+import json
 import flask
 import flask_cors
 import flask_praetorian
 from dotenv import load_dotenv
 from flask import request, jsonify, session
 from flask_cors import CORS, cross_origin
+import jwt
 from mongoengine import connect
 import traceback
-
+from mongoengine.queryset.visitor import Q
 from Schemas.TutoringSession import TutoringSession
+from Schemas.Message import Message
 from Schemas.User import User
 from datetime import *
+from bson.objectid import ObjectId
+from flask_mail import Mail;
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import ImmutableMultiDict
+
+UPLOAD_FOLDER = '/profile_pictures'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = flask.Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['CORS_HEADERS'] = 'Content-Type'
-
-app.config['SECRET_KEY'] ='/SADOKPKASONFAI^%&KLASJFHYG*/AS()UJF*()IJKAMSHBUG&F(A*ASH(&A*(F)(ASFFAS/UHIONJBAFSKNJBSAUHgbUASHIDIJA(S)/'
+app.config['SECRET_KEY'] ='TEMP_SECRET'
 CONNECTION = connect("testing", host=os.getenv("CONNECTION_STRING"))
-
 CORS(app, support_credentials=True)
 
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config["MAIL_USERNAME"] = "sotoemily03@gmail.com"
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_CONNECTION")
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
 
+app.config["PRAETORIAN_EMAIL_TEMPLATE"] = './email.html'
+app.config["PRATEORIAN_CONFIRMATION_SENDER"] = "sotoemily03@gmail.com"
+app.config["PRAETORIAN_CONFIRMATION_URI"] = "localhost:3000/user/finalize_registration"
+app.config["PRAETORIAN_CONFIRMATION_SUBJECT"] = "[JMSA Tutoring] Please Verify Your Account"
 app.config["JWT_ACCESS_LIFESPAN"] = {"hours": 24}
 app.config["JWT_REFRESH_LIFESPAN"] = {"days": 30}
 load_dotenv()
@@ -30,12 +48,17 @@ load_dotenv()
 guard = flask_praetorian.Praetorian()
 guard.init_app(app, User)
 
+mail = Mail(app)
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def parse_dates(input_date_list):
     formatted_list = []
     for date_input in input_date_list:
         datetime_formatted = datetime.strptime(date_input, "%m/%d/%Y")
-        formatted_list.append(datetime_formatted);
+        formatted_list.append(datetime_formatted)
     return formatted_list;
 
 
@@ -58,7 +81,10 @@ def create_session():
     try:
         tutoring_session = TutoringSession()
         datetime_formatted = datetime.strptime(request.json['date'], "%m/%d/%Y %I:%M %p")
+        end_datetime_formatted = datetime.strptime(request.json['end_date'], "%m/%d/%Y %I:%M %p")
+
         tutoring_session.date = datetime_formatted
+        tutoring_session.end_time = end_datetime_formatted
         tutoring_session.subject = request.json['subject']
 
         if "tutor" in flask_praetorian.current_user().roles:
@@ -108,14 +134,31 @@ def session_edit(id):
         return session_to_edit.to_json()
 
 
-@app.route('/user/protected', methods=['GET', 'POST'])
+@app.route('/user/<username>/chat/<recipient>', methods=['GET', 'POST'])
+@cross_origin(supports_credentials=True)
 @flask_praetorian.auth_required
-def protected():
-    print(flask_praetorian.current_user().rolenames)
-    return flask.jsonify(message="protected endpoint (allowed user roles {})".
-                         format(flask_praetorian.current_user().rolenames[1])
-                         )
+def chat(username, recipient):
+    try: 
+       user = flask_praetorian.current_user()   
+       if request.method=="POST":
+           message = Message()
+           message.sender = user.id
+           message.recipient = ObjectId(request.json['recipient'])
+           message.body = request.json['body']
+           message.timestamp = datetime.now()
+           message.save()
 
+           recipient = User.objects.get(id=request.json['recipient'])
+           recipient.messages.append(message)
+           user.messages.append(message)
+           user.save()
+           recipient.save() 
+           return message.to_json();
+       elif request.method=="GET":
+           return Message.objects.filter(Q(recipient=recipient) & Q(sender=user.id) | Q(sender=recipient) & Q(recipient=user.id)).to_json()
+    except Exception as e:
+        traceback.print_exc()
+        return 'Invalid operation'
 
 @app.route('/user/sign_in', methods=['POST'])
 @cross_origin(supports_credentials=True)
@@ -123,7 +166,7 @@ def login_page():
     try:
         if request.method == "POST":
             user = guard.authenticate(username=request.json['username'], password=request.json['password'])
-            if(user):
+            if(user and user.is_active):
                 user.id = str(user.id)
                 ret = {"access_token": guard.encode_jwt_token(user, override_access_lifespan=None, override_refresh_lifespan=None, bypass_user_check=False, is_registration_token=False, is_reset_token=False, username=user.username)}
                 session['jwt_token'] = ret
@@ -133,7 +176,7 @@ def login_page():
             return "<h1>Invalid format. Try again<h1>"
 
     except Exception as e:
-        traceback.print_exc()
+        print(e)
         return 'Invalid credentials', 401
 
 
@@ -141,30 +184,50 @@ def login_page():
 def api_sign_up():
     try:
         if request.method == 'POST':
-            user = User(
-                full_name=request.json['full_name'],
-                email=request.json['email'],
-                username=request.json['username'],
-                hashed_password=guard.hash_password(request.json['password']),
-                us_phone_number=request.json['us_phone_number'],
-                biography=request.json['biography'],
-                roles=request.json['roles'],
-                availability=parse_dates(request.json['availability'].split(", ")),
-                is_active=True
-            )
-
-            # if "tutor" in user.roles:
-            #     user.meeting_link = request.json['meeting_link']
-
-            user.save()
-            return user.to_json()
-        else:
-            return """THIS IS A GET REQUEST!"""
-
+            data = request.form
+            print(request.form.get('username'))
+            return "success"
     except Exception as e:
+        print(e)
         return str(e)
 
 
+@app.route('/finalize', methods=['GET'])
+def finalize():
+    try:
+        registration_token = guard.read_token_from_header()
+        user = guard.get_user_from_registration_token(registration_token)
+        user.is_active = True
+        user.save()
+        ret = {'access_token': guard.encode_jwt_token(user, override_access_lifespan=None, override_refresh_lifespan=None, bypass_user_check=False, is_registration_token=False, is_reset_token=False, username=user.username)}
+        return (flask.jsonify(ret), 200)
+    except Exception as e:
+        print(e)
+        return str(e)
+
+@app.route('/send_password_email', methods=['POST'])
+def send_email():
+    try:
+        return guard.send_reset_email(email=request.json['email'], reset_sender="sotoemily03@gmail.com", reset_uri="http://localhost:3000/reset_password")
+    except Exception as e:
+        print(e)
+        return str(e)
+        
+@app.route('/reset_password', methods=['POST'])
+def reset_password():
+    try:
+        reset_token = guard.read_token_from_header()
+        print(reset_token)
+        user = guard.validate_reset_token(reset_token)
+        if(user):  
+            user.hashed_password=guard.hash_password(request.json['password'])
+            guard.verify_and_update(user=user, password=request.json['password'])
+            user.save()
+            return ('200')
+    except Exception as e:
+        print(e)
+        return str(e)
+        
 @app.route('/user/<username>', methods=['GET'])
 @cross_origin(supports_credentials=True)
 def get_user(username):
@@ -203,6 +266,12 @@ def student_all():
     students = User.objects(roles__contains='student').all()
     return students.to_json()
 
+@app.route('/user', methods=['GET'])
+@cross_origin(supports_credentials=True)
+def user_all():
+    users = User.objects().all()
+    return users.to_json()
+
 
 @app.route('/user/tutors', methods=['GET'])
 @cross_origin(supports_credentials=True)
@@ -212,4 +281,24 @@ def tutor_all():
     return tutors.to_json()
 
 
+@app.route('/user/<username>/tutoring_history', methods=['GET'])
+@cross_origin(supports_credentials=True)
+def tutoring_history(username):
+    try:
+        user = User.objects.get(username=username)
+        sessions = TutoringSession.objects(tutor__id=user.id).all()
+
+        if(request.args.get('hours')):
+            total = 0
+            for session in sessions:
+                total+=session.lengthInHours()
+            return {'hours':total}
+        else:
+            return sessions.to_json()
+    except Exception as e:
+        traceback.print_exc()
+        return 'Invalid credentials', 401
+
+
+#is it worth having hours as a property
 app.run(debug=True)

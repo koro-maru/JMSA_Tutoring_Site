@@ -1,0 +1,14 @@
+.userdash {
+    display: flex;
+    flex-direction: row;
+    flex-flow: wrap;
+    -ms-flex-flow: wrap;
+    align-items: center;
+    justify-content: space-evenly
+    //justify-content:space-around
+    ;
+}
+
+.user_card {
+    margin: 2rem 2rem;
+}

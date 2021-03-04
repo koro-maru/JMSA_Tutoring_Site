@@ -8,19 +8,18 @@ const NavBar = (props) => {
     const history = useHistory();
     const logout = () =>{
         localStorage.clear()
+        history.push("/")
         setUsername(undefined)
-
     }
+    
     return (
-        <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
+        <Navbar className="navbar" collapseOnSelect expand="lg" variant="dark">
             <LinkContainer to="/">
                 <Navbar.Brand>JMSA Tutoring</Navbar.Brand>
             </LinkContainer>
             <Navbar.Toggle aria-controls="responsive-navbar-nav" />
             <Navbar.Collapse id="responsive-navbar-nav">
                 <Nav>
-               
-
                    {username ? (
                        <div >
                     <LinkContainer style={{display:"inline"}} to="/dashboard">
@@ -30,8 +29,8 @@ const NavBar = (props) => {
                             <Nav.Link style={{display:"inline"}}>Create Session</Nav.Link>
                         </LinkContainer>
 
-                        <LinkContainer style={{display:"inline"}} to={`/user/${username}/sessions`}>
-                            <Nav.Link>Sessions</Nav.Link>
+                        <LinkContainer style={{display:"inline"}} to={`/user/${username}/chat`}>
+                            <Nav.Link style={{display:"inline"}}>Chat</Nav.Link>
                         </LinkContainer>
 
                         <Navbar.Text style={{display:"inline"}}>Signed in as:
@@ -53,9 +52,6 @@ const NavBar = (props) => {
                             <Nav.Link>Sign Up</Nav.Link>
                         </LinkContainer>
                     </div>)}
-
-
-                 
                 </Nav>
             </Navbar.Collapse>
         </Navbar>
