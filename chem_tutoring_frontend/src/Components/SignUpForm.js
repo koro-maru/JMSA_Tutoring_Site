@@ -1,7 +1,7 @@
 import { React, useState } from 'react';
 import { Form, Button } from 'react-bootstrap'
 import DayPicker, { DateUtils } from "react-day-picker";
-import { axios_instance } from '..'
+import axios from 'axios'
 
 const SignUpForm = () => {
   const [dates, setDates] = useState([]);
@@ -21,40 +21,32 @@ const SignUpForm = () => {
     const us_phone_number = e.target.us_phone_number.value;
     const meeting_link = e.target.meeting_link ? e.target.meeting_link.value : ' ';
     const profile_picture = e.target.profile_picture.files[0];
-    const user = {
-      email: email,
-      full_name: full_name,
-      username: username,
-      password: password,
-      biography: biography,
-      roles: role,
-      profile_picture: profile_picture,
-      availability: dates.map((date) => {
-        return date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
-      }),
-      us_phone_number: us_phone_number
-    }
+
+    const bodyFormData = new FormData();
+
+    bodyFormData.append("email", email);
+    bodyFormData.append('full_name', full_name);
+    bodyFormData.append('password', password);
+    bodyFormData.append('us_phone_number', us_phone_number);
+    bodyFormData.append('profile_picture', profile_picture);
+    bodyFormData.append('biography', biography)
+    bodyFormData.append('username', username);
+    bodyFormData.append('availability', dates.map((date) => {
+      console.log(date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear())
+      return date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
+    }));
 
     if (role.includes("tutor")) {
-      user.meeting_link = meeting_link;
-      user.tutor_subjects = bestSubjects;
+      bodyFormData.append('meeting_link', meeting_link);
+      bodyFormData.append('tutor_subjects', bestSubjects);
     }
 
     if (role.includes("student")) {
-      user.problem_subjects = problemSubjects;
+      bodyFormData.append('problem_subjects', problemSubjects);
     }
 
-    const config = {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'multipart/form-data',
-      },
-    }
-
-    var bodyFormData = new FormData();
-    bodyFormData.append('username', username)
     setSubmitted(true);
-    axios_instance.post('http://127.0.0.1:5000/user/sign_up', user,config)
+    axios.post('http://127.0.0.1:5000/user/sign_up', bodyFormData)
       .then(function (response) {
         console.log(response);
       })
@@ -249,7 +241,7 @@ const SignUpForm = () => {
         </Form.Group>
 
         <Form.Label>Profile Picture</Form.Label>
-        <input type="file" name="profile_picture" />
+        <input accept=".jpg,.png,.jpeg" type="file" name="profile_picture" />
 
         <Form.Group controlId="availability">
           <Form.Label>*Availability</Form.Label>

@@ -1,6 +1,7 @@
 $t-gray-light: rgba(116, 19, 19, 0.692);
 $t-gray-dark: rgba(56, 47, 47, 0.555);
 $dark-gray: #282c34;
+$l: 2.5rem;
 
 body,
 html {
@@ -18,11 +19,18 @@ html {
     text-align: center;
 }
 
+.greyed_out {
+    color: rgba(211, 189, 192, 0.603);
+    font-size: $l;
+}
+
 hr {
     background-color: white;
 }
 
-
+.loading_spinner {
+    margin: 0 auto;
+}
 
 .fade-in {
     animation: fadeIn ease 3s;

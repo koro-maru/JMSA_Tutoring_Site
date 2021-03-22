@@ -5,66 +5,99 @@ import { Container, Row, Col } from 'react-bootstrap'
 import ReactPaginate from 'react-paginate'
 import { Form, FormControl, Dropdown } from 'react-bootstrap'
 import { NonceProvider } from 'react-select'
+import ReactLoading from 'react-loading';
 //Add support for som1 who is tutor + student
 const Dashboard = (props) => {
+  console.log(props.roles)
   const [data, setData] = useState({
     data: [],
     filtered: [],
     displayed: []
   })
+  const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({
-    username:'',
+    username: '',
     fullName: '',
-    subject:'',
-    type:''
+    subject: '',
+    type: ''
   })
 
   const perPage = 20;
   const pageCount = Math.ceil(data.data.length) / perPage;
 
- 
-  useEffect(()=> {
-   const filtered =  data.data.filter((user)=>{
+
+  useEffect(() => {
+    const filtered = data.data.filter((user) => {
+      setLoading(true);
       const usernameCheck = user.username.toLowerCase().includes(filters.username);
       const subjectCheck = user.roles.includes("tutor") && user.tutoring_subjects ? user.tutoring_subjects.includes(filters.subject) : user.problem_subjects ? user.problem_subjects.includes(filters.subject) : false;
-      const typeCheck = user.roles.includes(filters.typeCheck);
+      const typeCheck = user.roles.includes(filters.type);
       const fullNameCheck = user.full_name.toLowerCase().includes(filters.fullName.toLowerCase());
       let allChecks = true;
 
-      if(filters.username){
+      if (filters.username) {
         allChecks = allChecks && usernameCheck;
       }
-      if(filters.subject){
+      if (filters.subject) {
         allChecks = allChecks && subjectCheck;
       }
-      if(filters.fullName){
+      if (filters.fullName) {
         allChecks = allChecks && fullNameCheck;
       }
-      if(filters.type){
+      if (filters.type) {
         allChecks = allChecks && typeCheck;
       }
       return allChecks
     })
-
-    setData({...data, filtered: filtered, displayed:filtered.slice(0,perPage)})
+    setLoading(false);
+    setData({ ...data, filtered: filtered, displayed: filtered.slice(0, perPage) })
   }, [filters])
 
 
   useEffect(() => {
-    if (props.roles.includes('tutor')) {
-      axios_instance.get('http://127.0.0.1:5000/user/students')
-        .then(function (response) {
-          setData({ ...data, data: response.data, filtered:response.data, displayed: response.data.slice(0, perPage) })
+    console.log(props.username)
+    if (props.roles.includes('student') && props.roles.includes('tutor')) {
+      axios_instance.get('http://127.0.0.1:5000/user')
+        .then((res) =>{
+          return res.data.filter(user => user.username != props.username)
+        })
+        .then((response) => {
+          setData({ ...data, data: response, filtered: response, displayed: response.slice(0, perPage) })
+        })
+        .then(() => {
+          setLoading(false);
         })
         .catch(function (error) {
           console.log(error);
         });
     }
-    if (props.roles.includes('student')) {
-      axios_instance.get('http://127.0.0.1:5000/user/tutors')
+
+    else if (props.roles.includes('tutor')) {
+      axios_instance.get('http://127.0.0.1:5000/user/students')
+        .then((res) => {
+          return res.data.filter(user => user.username != props.username)
+        })
         .then(function (response) {
-          setData({ ...data, data: response.data, filtered:response.data, displayed: response.data.slice(0, perPage) })
+          setData({ ...data, data: response, filtered: response, displayed: response.slice(0, perPage) })
+        })
+        .then(() => {
+          setLoading(false);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+    else if (props.roles.includes('student')) {
+      axios_instance.get('http://127.0.0.1:5000/user/tutors')
+        .then((res) => {
+          return res.data.filter(user => user.username != props.username)
+        })
+        .then(function (response) {
+          setData({ ...data, data: response, filtered: response, displayed: response.slice(0, perPage) })
+        })
+        .then(() => {
+          setLoading(false);
         })
         .catch(function (error) {
           console.log(error);
@@ -83,53 +116,59 @@ const Dashboard = (props) => {
 
   const userDash = data.displayed.map((user) => {
     return (
-        <UserCard className="user_card" key={user._id.$oid} full_name={user.full_name} username={user.username} bio={user.biography} />
+      <UserCard className="user_card" key={user._id.$oid} full_name={user.full_name} username={user.username} bio={user.biography} />
     )
   })
 
   const setUsernameFilter = (e) => {
-    setFilters({...filters, username: e.target.value})
+    setFilters({ ...filters, username: e.target.value })
   }
   const setNameFilter = (e) => {
-    setFilters({...filters, fullName: e.target.value})
+    setFilters({ ...filters, fullName: e.target.value })
   }
 
   const onDropdownSelect = (eventKey) => {
-    setFilters({...filters, subject: eventKey});
+    setFilters({ ...filters, subject: eventKey });
+  }
+
+  const setRoleFilter = (e) => {
+    setFilters({ ...filters, type: e.target.value })
   }
 
   return (
     <div>
       <h1>Users</h1>
-      <div className="user_username">
+      <div>
         <Form className="form-comp">
-          <FormControl className="user-username" type="text" name="username" placeholder="Username" onChange={setUsernameFilter}/>
+          <FormControl className="user-username" type="text" name="username" placeholder="Username" onChange={setUsernameFilter} />
 
-          <FormControl className="user-fullname" type="text" name="fullname" placeholder="Name" onChange={setNameFilter}/>
+          <FormControl className="user-fullname" type="text" name="fullname" placeholder="Name" onChange={setNameFilter} />
           {//filter by student/tutor option if you're both a student & tutor
             props.roles.includes("tutor") && props.roles.includes("student") ? (
               <Form.Group controlId="role">
                 <Form.Check
                   inline
-                  value="tutors"
+                  value="tutor"
                   name="role"
                   label="Tutor"
                   type="radio"
                   id="tutor"
+                  onClick={setRoleFilter}
                 />
                 <Form.Check
                   inline
-                  value="students"
+                  value="student"
                   name="role"
                   label="Student"
                   type="radio"
                   id="student"
+                  onClick={setRoleFilter}
                 />
               </Form.Group>) : null}
           <Dropdown onSelect={onDropdownSelect}>
             <Dropdown.Toggle variant="success" className="subject">
-            <span> {filters.subject ? filters.subject : "Subject"}</span>
-          </Dropdown.Toggle>
+              <span> {filters.subject ? filters.subject : "Subject"}</span>
+            </Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item eventKey="Math" >Math</Dropdown.Item>
               <Dropdown.Item eventKey="English">English</Dropdown.Item>
@@ -144,7 +183,8 @@ const Dashboard = (props) => {
         </Form>
       </div>
 
-      {userDash.length != 0 ? <div className="userdash">{userDash}</div>:<h3>No matching users found</h3>}
+      {loading && <ReactLoading type={"spin"} color={"white"} height={'10%'} width={'10%'} className="loading_spinner" />}
+      {userDash.length != 0 ? <div className="userdash">{userDash}</div> : <h3>No matching users found</h3>}
 
 
       <ReactPaginate

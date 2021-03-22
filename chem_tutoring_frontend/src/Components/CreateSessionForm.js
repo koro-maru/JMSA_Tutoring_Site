@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { Form, Button, Dropdown } from 'react-bootstrap'
 import DayPicker from "react-day-picker";
 import TimePicker from 'react-time-picker'
+import {useHistory} from 'react-router-dom'
 import { axios_instance } from '..';
 import Select from 'react-select'
 import "../../node_modules/react-time-picker/dist/TimePicker.css";
 import "../../node_modules/react-clock/dist/Clock.css";
 const CreateSessionForm = (props) => {
 
+  const history = useHistory();
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [endTime, setEndTime] = useState('')
@@ -19,9 +21,12 @@ const CreateSessionForm = (props) => {
   useEffect(() => {
     if (props.roles.includes('tutor')) {
       axios_instance.get('http://127.0.0.1:5000/user/students')
+      .then(function (response) {
+        return response.data.filter(user => user.username!=props.username)
+       })
         .then(function (response) {
           console.log(response)
-          set_user_list([...user_list, ...response.data])
+          set_user_list([...user_list, ...response])
         })
         .catch(function (error) {
           console.log(error);
@@ -30,9 +35,11 @@ const CreateSessionForm = (props) => {
 
     if (props.roles.includes('student')) {
       axios_instance.get('http://127.0.0.1:5000/user/tutors')
+      .then(function (response) {
+        return response.data.filter(user => user.username!=props.username)
+       })
         .then(function (response) {
-          console.log(response)
-          set_user_list([...user_list, ...response.data])
+          set_user_list([...user_list, ...response])
         })
         .catch(function (error) {
           console.log(error);
@@ -56,7 +63,7 @@ const CreateSessionForm = (props) => {
 
     axios_instance.post('http://127.0.0.1:5000/user/sessions/new', session, config)
       .then((res) => {
-        console.log(res)
+        history.push(`/user/${props.username}`)
       }).catch((err) => {
         console.log(err)
       })

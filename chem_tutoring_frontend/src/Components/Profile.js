@@ -4,11 +4,13 @@ import { axios_instance } from '../index'
 import DayPicker from "react-day-picker";
 import UserSessions from './UserSessions';
 import { Row, Col, Container } from 'react-bootstrap'
+import ReactLoading from 'react-loading';
+import axios from 'axios';
 //View for viewing own profile and someone else viewing profile
 const Profile = (props) => {
     let { username } = useParams();
     const [user, set_user] = useState('');
-
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
         const config = {
             xhrFields: {
@@ -20,6 +22,7 @@ const Profile = (props) => {
             }
         }
 
+
         axios_instance.get(`/user/${username}`, config)
             .then((res) => {
                 const parsed_dates = res.data.availability.map((date) => {
@@ -28,17 +31,24 @@ const Profile = (props) => {
                     return parsed_date;
                 })
                 res.data.availability = parsed_dates;
-                return res.data
-            }).then((res) => {
-                set_user(res);
-            }).then(console.log(user))
+                set_user(res.data);
+            })
+            .then(() => {
+                setLoading(false);
+            })
     }, [])
 
-
+    const addDefaultSrc = (e) => {
+        e.preventDefault();
+        console.log(e.target)
+        e.target.src = `http://localhost:5000/profile_pictures/placeholder.jpg`
+    }
     return (
         <div>
             <div>
+                {loading && <ReactLoading type={"spin"} color={"white"} height={'10%'} width={'10%'} className="loading_spinner" />}
                 <h1>{user.full_name}</h1>
+                {user.profile_picture ? <img className="profile_picture" src={`http://localhost:5000/${user.profile_picture}`} onError={addDefaultSrc} alt="Profile Picture"></img> : <img className="profile_picture" src="http://localhost:5000/profile_pictures/placeholder.jpg"></img>}
                 <h2 className="subtitle">@{username}</h2>
                 {
                     username == props.username && (
@@ -70,7 +80,7 @@ const Profile = (props) => {
                                 />
                             </Col>
                             <Col md="6" className="user_sessions">
-                                {username == props.username && <UserSessions />}
+                                {username == props.username && <div><h3>Sessions</h3><UserSessions /></div>}
                             </Col>
                         </Row>
                     </Container>

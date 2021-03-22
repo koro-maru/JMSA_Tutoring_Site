@@ -6,8 +6,8 @@ import SessionListing from './SessionListing';
 import ReactPaginate from 'react-paginate'
 
 const UserSessions = (props) => {
-    const { username } = useParams();
-    const perPage = 1;
+    let { username } = useParams();
+    const perPage = props.perPage ? props.perPage : 1;
     const [sessions_list, set_sessions_list] = useState({
         raw_sessions: [],
         displayed_sessions: []
@@ -26,18 +26,32 @@ const UserSessions = (props) => {
             }
         }
 
-        axios_instance.get(`http://127.0.0.1:5000/user/${username}/sessions`, config)
-            .then((res) => {
-                console.log(res)
-                set_sessions_list({
-                    raw_sessions: res.data,
-                    displayed_sessions: res.data.slice(0, perPage)
+        if (username) {
+            axios_instance.get(`http://127.0.0.1:5000/user/${username}/sessions`, config)
+                .then((res) => {
+                    console.log(res)
+                    set_sessions_list({
+                        raw_sessions: res.data,
+                        displayed_sessions: res.data.slice(0, perPage)
+                    })
                 })
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-
+                .catch((err) => {
+                    console.log(err)
+                })
+        }
+        else {
+            axios_instance.get(`http://127.0.0.1:5000/sessions`, config)
+                .then((res) => {
+                    console.log(res)
+                    set_sessions_list({
+                        raw_sessions: res.data,
+                        displayed_sessions: res.data.slice(0, perPage)
+                    })
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+        }
     }, [])
 
     const handlePageClick = (e) => {
@@ -48,15 +62,26 @@ const UserSessions = (props) => {
 
     console.log(sessions_list)
     const sessions = sessions_list.displayed_sessions.map((session) => (
-        <SessionListing key={session._id} session={session} />
+        <SessionListing key={session._id} session={session} mode={!username ? "listing" : "card"} />
     ))
 
     return (
         <div>
-            <h3>Sessions</h3>
-            <div className="session_list">
-                {sessions.length !== 0 ? sessions : <h3>No sessions scheduled</h3>}
-                </div>
+            <div>
+                {sessions.length !== 0 ? !username ? (
+                <table>
+                    <div>
+                        <tr>
+                            <th>Student</th>
+                            <th>Tutor</th>
+                            <th>Subject</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                        </tr>
+                        {sessions}
+                    </div>
+                </table>) : sessions : <h3>No sessions scheduled</h3>}
+            </div>
             <ReactPaginate
                 pageCount={pageCount}
                 pageRangeDisplayed={5}

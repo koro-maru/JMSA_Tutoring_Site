@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Form, Button } from 'react-bootstrap'
-import { useParams } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 import DayPicker, { DateUtils } from "react-day-picker";
 import { axios_instance } from '..';
-
-
+//OK. ADD PAGINATION TO CHAT. DONE.
 const EditUser = (props) => {
   let { username } = useParams();
-
+  const history = useHistory();
   const [dates, setDates] = useState([])
 
 
@@ -20,10 +19,11 @@ const EditUser = (props) => {
 
 
   useEffect(() => {
-      axios_instance.get(`/user/${props.username}`).then((res) => {
-        set_user(res);
-      })
+    axios_instance.get(`/user/${props.username}`).then((res) => {
+      set_user(res.data);
+    })
   }, [])
+
   const handleChange = (e) => {
     const updated_user = {
       ...user,
@@ -53,12 +53,14 @@ const EditUser = (props) => {
   }
   const handleSubmit = (e) => {
     e.preventDefault();
-    const parsed_availability = parse_dates(user.availability);
+    let parsed_availability = ''
+    if (dates.length!==0) {
+     parsed_availability = parse_dates(user.availability);
+    }
     const edited_user = {
       email: user.email,
       full_name: user.full_name,
       username: user.username,
-      password: user.password,
       biography: user.biography,
       roles: user.roles,
       availability: parsed_availability,
@@ -75,7 +77,9 @@ const EditUser = (props) => {
     }
     axios_instance.post(`http://127.0.0.1:5000/user/${username}/edit`, edited_user, config)
       .then(function (res) {
-        localStorage.setItem('user', JSON.stringify(res));
+        localStorage.setItem("token", res.data.access_token)
+        history.push("/");
+        window.location.reload(true)
       })
       .catch(function (error) {
         console.log(error);
@@ -91,24 +95,14 @@ const EditUser = (props) => {
           <Form.Control type="email" value={user.email || ' '} onChange={handleChange} />
         </Form.Group>
 
-        <Form.Group controlId="full_name">
-          <Form.Label>Full Name</Form.Label>
-          <Form.Control type="text" value={user.full_name || ' '} onChange={handleChange} />
-        </Form.Group>
-
         <Form.Group controlId="username">
           <Form.Label>Username</Form.Label>
           <Form.Control type="text" value={user.username || ' '} onChange={handleChange} />
         </Form.Group>
 
-        <Form.Group controlId="password">
-          <Form.Label>Password</Form.Label>
-          <Form.Control type="password" value={user.username || ' '} onChange={handleChange} />
-        </Form.Group>
-
         <Form.Group controlId="us_phone_number">
           <Form.Label>Phone Number</Form.Label>
-          <Form.Control type="tel" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required value={user.us_phone_number || ' '} onChange={handleChange} />
+          <Form.Control type="tel" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" value={user.us_phone_number || ''} onChange={handleChange} />
         </Form.Group>
 
         <Form.Group controlId="biography">
@@ -120,10 +114,11 @@ const EditUser = (props) => {
           <Form.Check
             inline
             value="tutor"
-            name="role"
+            name="roles"
             label="Tutor"
             type="radio"
-            id="tutor"
+            id="roles"
+            onClick={handleChange}
           />
           <Form.Check
             inline
@@ -131,7 +126,8 @@ const EditUser = (props) => {
             name="role"
             label="Student"
             type="radio"
-            id="student"
+            id="roles"
+            onClick={handleChange}
           />
 
           <Form.Check
@@ -156,6 +152,9 @@ const EditUser = (props) => {
 
         </Form.Group>
 
+        <Form.Group>
+          <span>Forgot password? Click<a href="/reset_password"> Here</a></span>
+        </Form.Group>
         <Button variant="primary" type="submit">
           Submit
         </Button>

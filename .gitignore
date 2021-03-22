@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 /chem_tutoring_frontend/src/Components/AdminPortal
+/chem_tutoring_frontend/src/Components/UserTableListing
+/chem_tutoring_backend/profile_pictures

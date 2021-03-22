@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Button, Dropdown } from 'react-bootstrap'
-import { useParams } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import DayPicker, { DateUtils } from "react-day-picker";
 import { axios_instance } from '..';
 import Select from 'react-select'
@@ -10,23 +10,10 @@ import TimePicker from 'react-time-picker'
 
 
 const EditSessionForm = (props) => {
-
-  if (props.location.state) {
-    let savedState = JSON.stringify(props.location.state.session);
-    localStorage.setItem('session', savedState);
-  }
-
+  const history = useHistory();
   const [endTime, setEndTime] = useState('')
   const [time, setTime] = useState('')
-  const [session, setSession] = useState(
-    JSON.parse(localStorage.getItem('session'), function (key, value) {
-      if (key === 'date') {
-        return new Date(value.$date)
-      } else {
-        return value;
-      }
-    }) || {})
-
+  const [session, setSession] = useState(props.location.state.session);
   const [errors, setErrors] = useState('')
 
   const handleErrors = () => {
@@ -41,11 +28,12 @@ const EditSessionForm = (props) => {
   const handleSubmit = (e) => {
     e.preventDefault()
     handleErrors();
-    if(!errors){
+    if (!errors) {
       const subject = e.target.subject.value;
       const edited_session = {
         ...session,
         subject: subject,
+        end_time: endTime,
         date: formatDateTime(session.date, time),
       }
 
@@ -60,13 +48,13 @@ const EditSessionForm = (props) => {
       }
 
       axios_instance.post(`/user/sessions/${session._id.$oid}/edit`, edited_session, config)
-        .then((res) => {
-          localStorage.setItem('session', JSON.stringify(res))
+        .then(() => {
+          history.push(`/`)
         })
         .catch((err) => {
           console.log(err)
         })
-      }
+    }
   }
 
 
@@ -113,8 +101,8 @@ const EditSessionForm = (props) => {
       <Form onSubmit={handleSubmit}>
 
         <Dropdown onSelect={onDropdownSelect}>
-          <Dropdown.Toggle variant="success" id="subject">
-            Subjects
+          <Dropdown.Toggle variant="success" className="subject" id="subject">
+          <span> {session.subject ? session.subject : "Choose Subject"}</span>
           </Dropdown.Toggle>
           <Dropdown.Menu>
             <Dropdown.Item eventKey="Math" >Math</Dropdown.Item>

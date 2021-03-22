@@ -35,12 +35,12 @@ hr {
     font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Geneva, Verdana,
         sans-serif;
     display: block;
-    color: rgb(83, 202, 202);
+    color: rgb(30, 41, 41);
 }
 
 #subject {
     display: block;
-    color: green;
+    color: rgb(30, 41, 41);
 }
 
 .card-session-container {
@@ -52,27 +52,8 @@ hr {
     width: 18rem;
 }
 
-// .session {
-//     width: 70%;
-//     background-image: linear-gradient(rgb(255, 255, 255), rgb(243, 240, 255));
-//   }
-  
-//   .card-title {
-//       font-family: Arial, Helvetica, sans-serif;
-//       color: black;
-//       font-weight: bold;
-//   }
-//   #tutor {
-//       font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-//       display: block;
-//       color: rgb(83, 202, 202);
-//   }
-  
-//   #subject {
-//       display: block;
-//       color: green;
-//   }
-  
-//   .card-session-container {
-//   border: black;
-//   }
+.profile_picture {
+    height: 10rem;
+    width: 10rem;
+    border-radius: 100%;
+}

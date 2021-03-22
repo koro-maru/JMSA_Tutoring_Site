@@ -15,4 +15,5 @@ class TutoringSession(Document):
 
     def lengthInHours(self):
         difference = self.end_time - self.date
-        return (round(difference.total_seconds()/(3600), 2))
+        res = round(difference.total_seconds()/(3600), 2)
+        return res if res >=0 else 0

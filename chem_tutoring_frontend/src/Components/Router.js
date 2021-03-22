@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter,
   Switch,
@@ -25,14 +25,13 @@ const AppRouter = () => {
   let decoded;
   if(user){
     try{
-      decoded = jwt.verify(user, '/FUHISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSUI(H89hijimknjnujion/')
+      decoded = jwt.verify(user, '/NJIBYUGHBYUHIKNBJBYBTGYIUJNBGFB/')
     }
     catch(e){
       console.log(e);
     }
+    console.log(decoded)
   }
-
- 
 
     return (
         <BrowserRouter>
@@ -45,10 +44,10 @@ const AppRouter = () => {
                 <Route path="/sign_up" component={SignUpForm} exact/>
                 <Route  path="/sign_in" component={LoginForm} exact/>
                 <Route path="/dashboard" exact>
-                 {decoded && decoded.rls ? <Dashboard roles={decoded && decoded.rls} /> : <Errors error={401}/>}
+                 {decoded && decoded.rls ? <Dashboard roles={decoded && decoded.rls} username={decoded && decoded.username}/> : <Errors error={401}/>}
                 </Route>
                 <Route path="/user/create_session" exact>
-                {decoded && decoded.rls ? <CreateSessionForm roles={decoded && decoded.rls} /> :  <Errors error={401} />}
+                {decoded && decoded.rls ? <CreateSessionForm roles={decoded && decoded.rls} username={decoded && decoded.username}/> :  <Errors error={401} />}
                 </Route>
                 <Route exact path="/user/sessions/:session/edit" component={EditSessionForm}/>
                 <Route exact path="/user/:username" render={({match})=>{

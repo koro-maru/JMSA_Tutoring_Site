@@ -5,9 +5,10 @@ import { Form, Button } from 'react-bootstrap'
 import axios from 'axios'
 
 const PasswordReset = () => {
+    const history = useHistory();
     const location = useLocation();
     const token = location.search.substr(7);
-
+    const [passwordEmailSent, setPasswordEmailSent] = useState(false)
     const resetPassword = (e) => {
         e.preventDefault();
         const config = {
@@ -18,13 +19,13 @@ const PasswordReset = () => {
             }
         }
 
-        axios.post('http://127.0.0.1:5000/reset_password', {password: e.target.new_pass.value, confirmNewPassword: e.target.confirm_new_pass.value}, config)
-        .then((res)=>{
-            console.log(res);
-        })
-        .catch((err)=>{
-            console.log(err);
-        })
+        axios.post('http://127.0.0.1:5000/reset_password', { password: e.target.new_pass.value, confirmNewPassword: e.target.confirm_new_pass.value }, config)
+            .then((res) => {
+                history.push(`/`)
+            })
+            .catch((err) => {
+                console.log(err);
+            })
     }
 
     const sendResetEmail = (e) => {
@@ -36,15 +37,15 @@ const PasswordReset = () => {
         }
         e.preventDefault();
         const data = {
-            email : e.target.email.value
+            email: e.target.email.value
         }
         axios.post('http://127.0.0.1:5000/send_password_email', data, config)
-        .then((res)=>{
-            console.log(res);
-        })
-        .catch((err)=>{
-            console.log(err);
-        })
+            .then((res) => {
+                setPasswordEmailSent(true);
+            })
+            .catch((err) => {
+                console.log(err);
+            })
     }
 
     return (
@@ -52,7 +53,7 @@ const PasswordReset = () => {
             <h1>Reset Your Password</h1>
             { token ?
                 (
-            
+
                     <Form onSubmit={resetPassword}>
                         <Form.Group controlId="new_pass">
                             <Form.Label>New password</Form.Label>
@@ -69,6 +70,7 @@ const PasswordReset = () => {
                 :
                 (
                     <Form onSubmit={sendResetEmail}>
+                        {passwordEmailSent && <span className="flavor_text">Password Reset Email Sent</span>}
                         <Form.Group controlId="email">
                             <Form.Label>Email</Form.Label>
                             <Form.Control />

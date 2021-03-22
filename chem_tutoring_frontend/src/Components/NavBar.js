@@ -39,7 +39,7 @@ const NavBar = (props) => {
                            </LinkContainer>
                         </Navbar.Text>
 
-                        <Link style={{display:"inline"}} onClick={logout}>
+                        <Link to={null} style={{display:"inline"}} onClick={logout}>
                             <Nav.Link style={{display:"inline"}}>Logout</Nav.Link>
                         </Link>
                        </div>) : (
