@@ -3,6 +3,7 @@ import { propTypes } from 'react-bootstrap/esm/Image';
 import { useParams } from 'react-router-dom'
 import { axios_instance } from '..'
 import SessionListing from './SessionListing';
+import SessionFilters from './SessionFilters'
 import ReactPaginate from 'react-paginate'
 
 const UserSessions = (props) => {
@@ -10,9 +11,62 @@ const UserSessions = (props) => {
     const perPage = props.perPage ? props.perPage : 1;
     const [sessions_list, set_sessions_list] = useState({
         raw_sessions: [],
-        displayed_sessions: []
+        displayed_sessions: [],
+        filtered: []
     })
-    const pageCount = Math.ceil(sessions_list.raw_sessions.length) / perPage;
+    //Filtered is not neeeded with offset
+    //Put session list in var and change it when offset state changes
+    const [offset, setOffset] = useState(0)
+    const [filters, setFilters] = useState({
+        tutorFilter: '',
+        studentFilter: '',
+        sessionSubjectFilter: '',
+        startDateFilter: null,
+        startTimeFilter: null,
+        endTimeFilter: null
+    })
+    const pageCount = Math.ceil(sessions_list.filtered.length) / perPage;
+
+    const formatDateTime = (date, time) => {
+        const month = date.getMonth() < 10 ? "0" + (date.getMonth() + 1) : (date.getMonth() + 1);
+        const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+        const formattedDate = date.getFullYear() + "-" + month + "-" + day;
+        const formattedTime = "T" + time + ":00"
+        return new Date(formattedDate + formattedTime);
+    }
+
+    useEffect(() => {
+        const filteredSessions = sessions_list.raw_sessions.filter((session) => {
+            let allChecks = true;
+            allChecks = filters.tutorFilter ? (session.tutor.username.includes(filters.tutorFilter) ? allChecks : false) : allChecks;
+            allChecks = filters.studentFilter ? (session.student.username.includes(filters.studentFilter) ? allChecks : false) : allChecks;
+            if (filters.startDateFilter) {
+                const sessionDate = new Date(session.date.$date);
+                const sameDate = filters.startDateFilter.getDate() == sessionDate.getDate()
+                    && filters.startDateFilter.getFullYear() == sessionDate.getFullYear()
+                    && filters.startDateFilter.getMonth() == sessionDate.getMonth();
+                allChecks = sameDate ? allChecks : false
+
+                if (filters.startTimeFilter) {
+                    const startDateTime = formatDateTime(filters.startDateFilter, filters.startTimeFilter);
+                    allChecks = sameDate && startDateTime.getHours() == sessionDate.getHours() && startDateTime.getMinutes() == sessionDate.getMinutes() ? allChecks : false
+                }
+
+                if (filters.endTimeFilter) {
+                    const endDateTime = formatDateTime(filters.startDateFilter, filters.endTimeFilter);
+                    const sessionEndDate = new Date(session.end_time.$date)
+                    allChecks = sameDate && endDateTime.getHours() == sessionEndDate.getHours() && endDateTime.getMinutes() == sessionEndDate.getMinutes() ? allChecks : false
+                }
+            }
+            allChecks = filters.sessionSubjectFilter ? (filters.sessionSubjectFilter == session.subject ? allChecks : false) : allChecks;
+            return allChecks;
+
+        })
+
+        set_sessions_list({ ...sessions_list, displayed_sessions: perPage >= filteredSessions.length ? filteredSessions.slice(offset, filteredSessions.length) : filteredSessions.slice(offset, offset + perPage), filtered: filteredSessions })
+    }, [filters.studentFilter, filters.tutorFilter, filters.startDateFilter, filters.startTimeFilter, filters.endTimeFilter, filters.sessionSubjectFilter])
+
+
 
 
     useEffect(() => {
@@ -29,10 +83,11 @@ const UserSessions = (props) => {
         if (username) {
             axios_instance.get(`http://127.0.0.1:5000/user/${username}/sessions`, config)
                 .then((res) => {
-                    console.log(res)
+                    console.log(res.data)
                     set_sessions_list({
                         raw_sessions: res.data,
-                        displayed_sessions: res.data.slice(0, perPage)
+                        displayed_sessions: res.data.slice(0, perPage),
+                        filtered: res.data
                     })
                 })
                 .catch((err) => {
@@ -42,10 +97,10 @@ const UserSessions = (props) => {
         else {
             axios_instance.get(`http://127.0.0.1:5000/sessions`, config)
                 .then((res) => {
-                    console.log(res)
                     set_sessions_list({
                         raw_sessions: res.data,
-                        displayed_sessions: res.data.slice(0, perPage)
+                        displayed_sessions: res.data.slice(0, perPage),
+                        filtered: res.data
                     })
                 })
                 .catch((err) => {
@@ -54,33 +109,40 @@ const UserSessions = (props) => {
         }
     }, [])
 
+    //Update display when page clicked
+    useEffect(() => {
+        set_sessions_list({ ...sessions_list, displayed_sessions: offset + perPage >= sessions_list.filtered.length ? sessions_list.filtered.slice(offset, sessions_list.filtered.length) : sessions_list.filtered.slice(offset, offset + perPage) })
+    }, [offset])
+
     const handlePageClick = (e) => {
         let selected = e.selected;
-        let offset = Math.ceil(selected * perPage);
-        set_sessions_list({ ...sessions_list, displayed_sessions: perPage >= sessions_list.raw_sessions.length ? sessions_list.raw_sessions.slice(offset, sessions_list.raw_sessions.length) : sessions_list.raw_sessions.slice(offset, offset + perPage) })
+        setOffset(Math.ceil(selected * perPage));
     };
 
-    console.log(sessions_list)
     const sessions = sessions_list.displayed_sessions.map((session) => (
-        <SessionListing key={session._id} session={session} mode={!username ? "listing" : "card"} />
+        <SessionListing key={session._id.$oid} session={session} mode={!username ? "listing" : "card"} />
     ))
 
     return (
         <div>
             <div>
+                {!username && <SessionFilters sessions={sessions_list.raw_sessions} filters={filters} setFilters={setFilters} />}
                 {sessions.length !== 0 ? !username ? (
-                <table>
-                    <div>
-                        <tr>
-                            <th>Student</th>
-                            <th>Tutor</th>
-                            <th>Subject</th>
-                            <th>Start Time</th>
-                            <th>End Time</th>
-                        </tr>
-                        {sessions}
-                    </div>
-                </table>) : sessions : <h3>No sessions scheduled</h3>}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Tutor</th>
+                                <th>Subject</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {sessions}
+                            </tbody>
+                    </table>
+                ) : sessions : <h3>No sessions scheduled</h3>}
             </div>
             <ReactPaginate
                 pageCount={pageCount}

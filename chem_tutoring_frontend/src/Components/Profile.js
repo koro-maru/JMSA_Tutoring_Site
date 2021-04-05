@@ -5,12 +5,16 @@ import DayPicker from "react-day-picker";
 import UserSessions from './UserSessions';
 import { Row, Col, Container } from 'react-bootstrap'
 import ReactLoading from 'react-loading';
+import {verifyJWT} from '../utility';
 import axios from 'axios';
 //View for viewing own profile and someone else viewing profile
-const Profile = (props) => {
+const Profile = () => {
     let { username } = useParams();
     const [user, set_user] = useState('');
     const [loading, setLoading] = useState(true);
+
+    const jwt = verifyJWT();
+
     useEffect(() => {
         const config = {
             xhrFields: {
@@ -50,8 +54,9 @@ const Profile = (props) => {
                 <h1>{user.full_name}</h1>
                 {user.profile_picture ? <img className="profile_picture" src={`http://localhost:5000/${user.profile_picture}`} onError={addDefaultSrc} alt="Profile Picture"></img> : <img className="profile_picture" src="http://localhost:5000/profile_pictures/placeholder.jpg"></img>}
                 <h2 className="subtitle">@{username}</h2>
+                <p>{username != jwt.username && <Link to={{pathname: `/user/${jwt.username}/chat`}}>Chat</Link>}</p>
                 {
-                    username == props.username && (
+                    (username == jwt.username || jwt.rls.includes('admin')) && (
                         <Link to={{
                             pathname: `/user/${username}/edit`,
                             state: {
@@ -67,7 +72,7 @@ const Profile = (props) => {
                 </div>
                 <hr />
 
-                {username == props.username ?
+                {jwt && username == jwt.username || jwt.rls.includes('admin') ?
                     <Container>
                         <Row>
                             <Col md="6">
@@ -80,7 +85,7 @@ const Profile = (props) => {
                                 />
                             </Col>
                             <Col md="6" className="user_sessions">
-                                {username == props.username && <div><h3>Sessions</h3><UserSessions /></div>}
+                                {(username == jwt.username || jwt.rls.includes('admin')) ?  <div><h3>Sessions</h3><UserSessions/></div> : ''}
                             </Col>
                         </Row>
                     </Container>

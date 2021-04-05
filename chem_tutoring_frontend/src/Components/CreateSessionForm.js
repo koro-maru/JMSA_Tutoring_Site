@@ -4,10 +4,13 @@ import DayPicker from "react-day-picker";
 import TimePicker from 'react-time-picker'
 import {useHistory} from 'react-router-dom'
 import { axios_instance } from '..';
-import Select from 'react-select'
+import Select from 'react-select';
+import Subjects from './Subjects';
+import {verifyJWT} from '../utility';
 import "../../node_modules/react-time-picker/dist/TimePicker.css";
 import "../../node_modules/react-clock/dist/Clock.css";
-const CreateSessionForm = (props) => {
+
+const CreateSessionForm = () => {
 
   const history = useHistory();
   const [date, setDate] = useState('')
@@ -18,11 +21,12 @@ const CreateSessionForm = (props) => {
   const [other_user, setOtherUser] = useState({})
   const [errors, setErrors] = useState('')
 
+  const jwt = verifyJWT();
   useEffect(() => {
-    if (props.roles.includes('tutor')) {
+    if (jwt.rls.includes('tutor')) {
       axios_instance.get('http://127.0.0.1:5000/user/students')
       .then(function (response) {
-        return response.data.filter(user => user.username!=props.username)
+        return response.data.filter(user => user.username!=jwt.username)
        })
         .then(function (response) {
           console.log(response)
@@ -33,10 +37,10 @@ const CreateSessionForm = (props) => {
         });
     }
 
-    if (props.roles.includes('student')) {
+    if (jwt.rls.includes('student')) {
       axios_instance.get('http://127.0.0.1:5000/user/tutors')
       .then(function (response) {
-        return response.data.filter(user => user.username!=props.username)
+        return response.data.filter(user => user.username!=jwt.username)
        })
         .then(function (response) {
           set_user_list([...user_list, ...response])
@@ -63,16 +67,12 @@ const CreateSessionForm = (props) => {
 
     axios_instance.post('http://127.0.0.1:5000/user/sessions/new', session, config)
       .then((res) => {
-        history.push(`/user/${props.username}`)
+        history.push(`/user/${jwt.username}`)
       }).catch((err) => {
         console.log(err)
       })
 
 
-  }
-
-  const onDropdownSelect = (eventKey) => {
-    setSubject(eventKey);
   }
 
   const handleDayClick = (day, { selected }) => {
@@ -106,23 +106,11 @@ const CreateSessionForm = (props) => {
     <div className="form-comp">
       <h1>Set up a Session</h1>
       <Form onSubmit={handleSubmit}>
-        <Dropdown onSelect={onDropdownSelect}>
-            <Dropdown.Toggle variant="success" className="subject">
-              <span> {subject ? subject : "Subject"}</span>
-            </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item eventKey="Math" >Math</Dropdown.Item>
-            <Dropdown.Item eventKey="English">English</Dropdown.Item>
-            <Dropdown.Item eventKey="Chemistry">Chemistry</Dropdown.Item>
-            <Dropdown.Item eventKey="Computer Science">Computer Science</Dropdown.Item>
-            <Dropdown.Item eventKey="History">History</Dropdown.Item>
-            <Dropdown.Item eventKey="Physics">Physics</Dropdown.Item>
-            <Dropdown.Item eventKey="Biology">Biology</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
+        {/*make dropdown a compoent*/}
+        <Subjects subject={subject} onSelect={setSubject}/>
 
         <Form.Group controlId="session_attendee">
-          <Form.Label>{props.roles.includes('tutor') ? 'Student' : 'Tutor'}</Form.Label>
+          <Form.Label>{jwt.rls.includes('tutor') ?  'Student' : 'Tutor'}</Form.Label>
           <Select
             className="select center"
             onChange={handleSelect}

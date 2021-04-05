@@ -1,11 +1,30 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { Link } from 'react-router-dom'
 import { Card, Button } from 'react-bootstrap';
-import { parseDate, parseTime } from '../utility'
+import { parseDate, parseTime, verifyJWT } from '../utility'
+import {axios_instance} from '../index'
 const SessionListing = (props) => {
   const mode = props.mode;
+  const jwt = verifyJWT();
+  const [confirmed, setConfirmed] = useState(false);
 
-  console.log(props)
+  const confirmSession = () => {
+    let confirmation = {};
+    if(jwt.username==props.session.tutor.username){
+      confirmation.tutor_confirmed = true;
+    }
+    else if(jwt.username==props.session.student.username){
+      confirmation.student_confirmed = true;
+    }
+    axios_instance.post(`/user/sessions/${props.session._id.$oid}/edit`, confirmation)
+    .then(()=>{
+     setConfirmed(true);
+    })
+    .catch((err)=>{
+      console.log(err)
+    })
+  }
+
   return (
     props.mode === "card" ?
       (<div className="center card-session-container">
@@ -18,6 +37,11 @@ const SessionListing = (props) => {
               <p id="date">{
                 parseDate(props.session.date.$date)
               } to <span id="end_time">{parseTime(props.session.end_time.$date)}</span></p>
+              <p>Confirmation Status: {(props.session.tutor_confirmed && props.session.student_confirmed || confirmed) ? "Confirmed" : "Not Confirmed"} </p>
+
+              {
+                (jwt.username==props.session.tutor.username && !props.session.tutor_confirmed|| jwt.username==props.session.student.username && !props.session.student_confirmed) && <a className="delete-link" onClick={confirmSession}>Confirm</a>
+              }
             </Card.Text>
             <Link to={{
               pathname: `/user/sessions/${props.session._id.$oid}/edit`,

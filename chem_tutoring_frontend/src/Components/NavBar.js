@@ -2,16 +2,19 @@ import React, {useState} from 'react';
 import { LinkContainer } from 'react-router-bootstrap'
 import { Navbar, Nav } from 'react-bootstrap'
 import {Link, useHistory} from 'react-router-dom'
+import {verifyJWT} from '../utility'
 const NavBar = (props) => {
-
-    const [username, setUsername] = useState(props.username || undefined)
+    const jwt = verifyJWT()
+    const [username, setUsername] = useState(jwt && jwt.username)
     const history = useHistory();
-    const logout = () =>{
+    const logout = (e) =>{
+        e.preventDefault();
         localStorage.clear()
         history.push("/")
         setUsername(undefined)
     }
     
+ 
     return (
         <Navbar className="navbar" collapseOnSelect expand="lg" variant="dark">
             <LinkContainer to="/">
@@ -39,7 +42,7 @@ const NavBar = (props) => {
                            </LinkContainer>
                         </Navbar.Text>
 
-                        <Link to={null} style={{display:"inline"}} onClick={logout}>
+                        <Link to={'/'} style={{display:"inline"}} onClick={logout}>
                             <Nav.Link style={{display:"inline"}}>Logout</Nav.Link>
                         </Link>
                        </div>) : (

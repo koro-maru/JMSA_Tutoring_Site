@@ -3,17 +3,22 @@ import { axios_instance } from '..'
 import UserCard from './UserCard'
 import { Container, Row, Col } from 'react-bootstrap'
 import ReactPaginate from 'react-paginate'
-import { Form, FormControl, Dropdown } from 'react-bootstrap'
+import { Form, FormControl } from 'react-bootstrap'
+import { Subjects } from './Subjects'
 import { NonceProvider } from 'react-select'
 import ReactLoading from 'react-loading';
+import Filters from './Filters'
+import {verifyJWT} from '../utility'
 //Add support for som1 who is tutor + student
 const Dashboard = (props) => {
-  console.log(props.roles)
-  const [data, setData] = useState({
-    data: [],
+  const jwt = verifyJWT();
+  const [userList, setUserlist] = useState({
+    userList: [],
     filtered: [],
     displayed: []
   })
+
+  const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({
@@ -24,11 +29,11 @@ const Dashboard = (props) => {
   })
 
   const perPage = 20;
-  const pageCount = Math.ceil(data.data.length) / perPage;
+  const pageCount = Math.ceil(userList.userList.length) / perPage;
 
 
   useEffect(() => {
-    const filtered = data.data.filter((user) => {
+    const filtered = userList.userList.filter((user) => {
       setLoading(true);
       const usernameCheck = user.username.toLowerCase().includes(filters.username);
       const subjectCheck = user.roles.includes("tutor") && user.tutoring_subjects ? user.tutoring_subjects.includes(filters.subject) : user.problem_subjects ? user.problem_subjects.includes(filters.subject) : false;
@@ -51,19 +56,18 @@ const Dashboard = (props) => {
       return allChecks
     })
     setLoading(false);
-    setData({ ...data, filtered: filtered, displayed: filtered.slice(0, perPage) })
+    setUserlist({ ...userList, filtered: filtered, displayed: filtered.slice(0, perPage) })
   }, [filters])
 
 
   useEffect(() => {
-    console.log(props.username)
-    if (props.roles.includes('student') && props.roles.includes('tutor')) {
+    if (jwt && jwt.rls.includes('student') && jwt.rls.includes('tutor') || jwt.rls.includes('admin')) {
       axios_instance.get('http://127.0.0.1:5000/user')
-        .then((res) =>{
+        .then((res) => {
           return res.data.filter(user => user.username != props.username)
         })
         .then((response) => {
-          setData({ ...data, data: response, filtered: response, displayed: response.slice(0, perPage) })
+          setUserlist({ ...userList, userList: response, filtered: response, displayed: response.slice(0, perPage) })
         })
         .then(() => {
           setLoading(false);
@@ -73,13 +77,13 @@ const Dashboard = (props) => {
         });
     }
 
-    else if (props.roles.includes('tutor')) {
+    else if (jwt && jwt.rls.includes('tutor')) {
       axios_instance.get('http://127.0.0.1:5000/user/students')
         .then((res) => {
           return res.data.filter(user => user.username != props.username)
         })
         .then(function (response) {
-          setData({ ...data, data: response, filtered: response, displayed: response.slice(0, perPage) })
+          setUserlist({ ...userList, userList: response, filtered: response, displayed: response.slice(0, perPage) })
         })
         .then(() => {
           setLoading(false);
@@ -88,13 +92,13 @@ const Dashboard = (props) => {
           console.log(error);
         });
     }
-    else if (props.roles.includes('student')) {
+    else if (jwt && jwt.rls.includes('student')) {
       axios_instance.get('http://127.0.0.1:5000/user/tutors')
         .then((res) => {
-          return res.data.filter(user => user.username != props.username)
+          return res.data.filter(user => user.username != jwt.username)
         })
         .then(function (response) {
-          setData({ ...data, data: response, filtered: response, displayed: response.slice(0, perPage) })
+          setUserlist({ ...userList, userList: response, filtered: response, displayed: response.slice(0, perPage) })
         })
         .then(() => {
           setLoading(false);
@@ -109,27 +113,16 @@ const Dashboard = (props) => {
 
   const handlePageClick = (e) => {
     let selected = e.selected;
-    let offset = Math.ceil(selected * perPage);
-    setData({ ...data, displayed: perPage >= data.filtered.length ? data.filtered.slice(offset, data.filtered.length) : data.filtered.slice(offset, offset + 2) })
+    setOffset(Math.ceil(selected * perPage));
+    setUserlist({ ...userList, displayed: perPage >= userList.filtered.length ? userList.filtered.slice(offset, userList.filtered.length) : userList.filtered.slice(offset, offset + 2) })
   };
 
 
-  const userDash = data.displayed.map((user) => {
+  const userDash = userList.displayed.map((user) => {
     return (
       <UserCard className="user_card" key={user._id.$oid} full_name={user.full_name} username={user.username} bio={user.biography} />
     )
   })
-
-  const setUsernameFilter = (e) => {
-    setFilters({ ...filters, username: e.target.value })
-  }
-  const setNameFilter = (e) => {
-    setFilters({ ...filters, fullName: e.target.value })
-  }
-
-  const onDropdownSelect = (eventKey) => {
-    setFilters({ ...filters, subject: eventKey });
-  }
 
   const setRoleFilter = (e) => {
     setFilters({ ...filters, type: e.target.value })
@@ -139,12 +132,10 @@ const Dashboard = (props) => {
     <div>
       <h1>Users</h1>
       <div>
-        <Form className="form-comp">
-          <FormControl className="user-username" type="text" name="username" placeholder="Username" onChange={setUsernameFilter} />
-
-          <FormControl className="user-fullname" type="text" name="fullname" placeholder="Name" onChange={setNameFilter} />
-          {//filter by student/tutor option if you're both a student & tutor
-            props.roles.includes("tutor") && props.roles.includes("student") ? (
+        <Filters  users={userList} offset={offset} perPage={perPage} setUsers={setUserlist} />
+        {
+          jwt.rls.includes("tutor") && jwt.rls.includes("student") ? (
+            <Form className="form-comp">
               <Form.Group controlId="role">
                 <Form.Check
                   inline
@@ -164,23 +155,10 @@ const Dashboard = (props) => {
                   id="student"
                   onClick={setRoleFilter}
                 />
-              </Form.Group>) : null}
-          <Dropdown onSelect={onDropdownSelect}>
-            <Dropdown.Toggle variant="success" className="subject">
-              <span> {filters.subject ? filters.subject : "Subject"}</span>
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item eventKey="Math" >Math</Dropdown.Item>
-              <Dropdown.Item eventKey="English">English</Dropdown.Item>
-              <Dropdown.Item eventKey="Chemistry">Chemistry</Dropdown.Item>
-              <Dropdown.Item eventKey="Computer Science">Computer Science</Dropdown.Item>
-              <Dropdown.Item eventKey="History">History</Dropdown.Item>
-              <Dropdown.Item eventKey="Physics">Physics</Dropdown.Item>
-              <Dropdown.Item eventKey="Biology">Biology</Dropdown.Item>
-              <Dropdown.Item eventKey="">None</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </Form>
+              </Form.Group>
+              </Form>) : null
+         
+}
       </div>
 
       {loading && <ReactLoading type={"spin"} color={"white"} height={'10%'} width={'10%'} className="loading_spinner" />}

@@ -7,15 +7,15 @@ import Select from 'react-select'
 import "../../node_modules/react-time-picker/dist/TimePicker.css";
 import "../../node_modules/react-clock/dist/Clock.css";
 import TimePicker from 'react-time-picker'
+import Subjects from './Subjects';
 
 
 const EditSessionForm = (props) => {
   const history = useHistory();
-  const [endTime, setEndTime] = useState('')
-  const [time, setTime] = useState('')
+  const [endTime, setEndTime] = useState('');
+  const [time, setTime] = useState('');
   const [session, setSession] = useState(props.location.state.session);
-  const [errors, setErrors] = useState('')
-
+  const [errors, setErrors] = useState('');
   const handleErrors = () => {
     if (!time || !endTime || time > endTime) {
       setErrors('Invalid time');
@@ -29,12 +29,12 @@ const EditSessionForm = (props) => {
     e.preventDefault()
     handleErrors();
     if (!errors) {
-      const subject = e.target.subject.value;
+      const endDateTime = formatDateTime(session.date, endTime);
+      const startDateTime = formatDateTime(session.date, time)
       const edited_session = {
         ...session,
-        subject: subject,
-        end_time: endTime,
-        date: formatDateTime(session.date, time),
+        end_time: endDateTime,
+        date: startDateTime,
       }
 
       const config = {
@@ -47,7 +47,7 @@ const EditSessionForm = (props) => {
         }
       }
 
-      axios_instance.post(`/user/sessions/${session._id.$oid}/edit`, edited_session, config)
+      axios_instance.post(`/user/sessions/${session._id.$oid}/edit`, {...edited_session, tutor_confirmed: false, student_confirmed: false}, config)
         .then(() => {
           history.push(`/`)
         })
@@ -74,17 +74,18 @@ const EditSessionForm = (props) => {
   const formatDateTime = (date, time) => {
     const hour = parseInt(time.substring(0, 1)) == 0 ? parseInt(time.substring(1, 2)) : parseInt(time.substring(0, 2))
     const minutes = time.substring(2)
+
+
     const amPM = hour < 12 ? 'AM' : 'PM'
-    const formatted_hour = hour > 12 ? hour - 12 : hour;
+    const formatted_hour = hour > 12 ? hour - 12 : hour < 10 ? "0" + hour : hour;
     time = formatted_hour + minutes + " " + amPM
-    console.log(date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear() + " " + time)
+
     return date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear() + " " + time;
   }
 
   const onDropdownSelect = (eventKey) => {
     setSession({ ...session, subject: eventKey });
   }
-
 
   const handleChange = (e) => {
     const updated_session = {
@@ -99,22 +100,7 @@ const EditSessionForm = (props) => {
       <h1>Edit Session</h1>
       <span className="errors">{errors}</span>
       <Form onSubmit={handleSubmit}>
-
-        <Dropdown onSelect={onDropdownSelect}>
-          <Dropdown.Toggle variant="success" className="subject" id="subject">
-          <span> {session.subject ? session.subject : "Choose Subject"}</span>
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item eventKey="Math" >Math</Dropdown.Item>
-            <Dropdown.Item eventKey="English">English</Dropdown.Item>
-            <Dropdown.Item eventKey="Chemistry">Chemistry</Dropdown.Item>
-            <Dropdown.Item eventKey="Computer Science">Computer Science</Dropdown.Item>
-            <Dropdown.Item eventKey="History">History</Dropdown.Item>
-            <Dropdown.Item eventKey="Physics">Physics</Dropdown.Item>
-            <Dropdown.Item eventKey="Biology">Biology</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-
+        <Subjects onSelect={onDropdownSelect} subject={session.subject} />
         <Form.Group controlId="tutor">
           <Form.Label>Tutor</Form.Label>
           <Form.Control type="text" value={session.tutor.username} />

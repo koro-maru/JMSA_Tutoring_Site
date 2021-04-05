@@ -3,25 +3,26 @@ import { Form, Button } from 'react-bootstrap'
 import { useParams, useHistory } from "react-router-dom";
 import DayPicker, { DateUtils } from "react-day-picker";
 import { axios_instance } from '..';
-//OK. ADD PAGINATION TO CHAT. DONE.
+import { verifyJWT } from '../utility';
+
 const EditUser = (props) => {
   let { username } = useParams();
+  const jwt = verifyJWT()
+
   const history = useHistory();
   const [dates, setDates] = useState([])
-
-
-  if (props.location && props.location.state) {
-    let savedState = JSON.stringify(props.location.state);
-    localStorage.setItem('user', savedState);
-  }
-
   const [user, set_user] = useState({});
 
 
   useEffect(() => {
-    axios_instance.get(`/user/${props.username}`).then((res) => {
+    if(props && props.location &&  props.location.state.user) {
+      set_user(props.location.state.user)
+    }
+    else {
+    axios_instance.get(`/user/${username}`).then((res) => {
       set_user(res.data);
     })
+  }
   }, [])
 
   const handleChange = (e) => {
@@ -30,6 +31,15 @@ const EditUser = (props) => {
       [e.target.id]: e.target.value
     }
     set_user(updated_user)
+  }
+
+  const deleteUser = () => {
+    history.push("/");
+    axios_instance.delete(`http://127.0.0.1:5000/user/${username}/edit`)
+    .catch((err)=>{
+      console.log(err)
+    })
+
   }
 
   const handleDayClick = (day, { selected }) => {
@@ -77,7 +87,9 @@ const EditUser = (props) => {
     }
     axios_instance.post(`http://127.0.0.1:5000/user/${username}/edit`, edited_user, config)
       .then(function (res) {
+        if(jwt.username==username){
         localStorage.setItem("token", res.data.access_token)
+        }
         history.push("/");
         window.location.reload(true)
       })
@@ -151,10 +163,13 @@ const EditUser = (props) => {
           />
 
         </Form.Group>
-
+        <Form.Group>
+          <a className="delete-link" onClick={deleteUser}>Delete</a>
+        </Form.Group>
         <Form.Group>
           <span>Forgot password? Click<a href="/reset_password"> Here</a></span>
         </Form.Group>
+
         <Button variant="primary" type="submit">
           Submit
         </Button>

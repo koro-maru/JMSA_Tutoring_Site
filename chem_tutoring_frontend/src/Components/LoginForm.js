@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Form, Button } from 'react-bootstrap'
 import { axios_instance } from '../index'
 import { useHistory } from "react-router-dom";
+import jwt from 'jsonwebtoken'
 const LoginForm = (props) => {
   let history = useHistory();
   let [errors, setErrors] = useState('')
@@ -30,10 +31,12 @@ const LoginForm = (props) => {
     axios_instance.post('user/sign_in', user, config)
       .then(function (response) {
         if (response.data.access_token) {
-          localStorage.clear()
-          localStorage.setItem("token", response.data.access_token);
-          history.push("/")
-          window.location.reload(true)
+          jwt.verify(response.data.access_token, '/NJIBYUGHBYUHIKNBJBYBTGYIUJNBGFB/', () => {
+            localStorage.clear()
+            localStorage.setItem("token", response.data.access_token);
+            history.push("/")
+            window.location.reload(true)
+          })
         }
       })
       .catch(function (error) {

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { axios_instance } from '../index'
+import {subjects} from './Subjects'
+import {Link} from 'react-router-dom';
 const UserTableListing = (props) => {
-  const [hours, setHours] = useState(0);
-  //state is setting, bleeding in to other states. Check if this is api failure or this failure. console.logs.. goodnight
+  const [hours, setHours] = useState([]);
   const getHours = async (username) => {
     const res = await axios_instance.get(`/user/${username}/tutoring_history?hours=true`)
     return res.data;
@@ -12,7 +13,14 @@ const UserTableListing = (props) => {
     if (props.username) {
       getHours(props.username)
         .then((res) => {
-          setHours(res.hours)
+          const hoursFormatted = [];
+          for(const subject in res){
+            hoursFormatted.push(<div>{subject} : {res[subject]}</div>)
+          }
+          return hoursFormatted;
+        })
+        .then((res)=>{
+          setHours(res);
         })
     }
     else {
@@ -24,7 +32,7 @@ const UserTableListing = (props) => {
  
       <tr className="userListing">
         <td>{props.full_name}</td>
-        <td>{props.username}</td>
+        <td><Link to={`/user/${props.username}`}>{props.username}</Link></td>
         <td>{props.email}</td>
         <td>{props.us_phone_number}</td>
         <td>{props.roles}</td>

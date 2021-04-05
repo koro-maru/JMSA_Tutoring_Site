@@ -6,8 +6,9 @@ import Select from 'react-select';
 import jwt_decode from 'jwt-decode'
 import ReactLoading from 'react-loading';
 import ReactPaginate from 'react-paginate';
-import {parseDate} from '../utility'
-const Chat = (props) => {
+import {parseDate, verifyJWT} from '../utility'
+const Chat = () => {
+  const jwt = verifyJWT();
   const { username } = useParams();
   const [messages, set_messages] = useState({
     displayed: [],
@@ -41,7 +42,7 @@ const Chat = (props) => {
 
   useEffect(() => {
     //Two ifs do not work? Must call axios twice in one if or else one is not considered? 
-    if (props.roles.includes('student') && props.roles.includes('tutor')) {
+    if (jwt.rls.includes('student') && jwt.rls.includes('tutor')) {
       axios_instance.get('http://127.0.0.1:5000/user')
         .then(function (response) {
           return response.data.filter(user => user.username != username)
@@ -54,7 +55,7 @@ const Chat = (props) => {
         });
     }
 
-    else if (props.roles.includes('tutor')) {
+    else if (jwt.rls.includes('tutor')) {
       axios_instance.get('http://127.0.0.1:5000/user/students')
         .then(function (response) {
           return response.data.filter(user => user.username != username)
@@ -67,7 +68,7 @@ const Chat = (props) => {
         });
     }
 
-    else if (props.roles.includes('student')) {
+    else if (jwt.rls.includes('student')) {
       axios_instance.get('http://127.0.0.1:5000/user/tutors')
         .then(function (response) {
           return response.data.filter(user => user.username != username)

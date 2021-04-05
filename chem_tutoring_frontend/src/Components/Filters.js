@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Form, FormControl, Dropdown, Col, Row, Pagination } from 'react-bootstrap'
+import jwt from 'jsonwebtoken';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import Subjects from '../Components/Subjects'
 const Filters = (props) => {
     const [nameFilter, setNameFilter] = useState('');
     const [emailFilter, setEmailFilter] = useState('');
@@ -7,38 +10,70 @@ const Filters = (props) => {
     const [phoneFilter, setPhoneFilter] = useState('');
     const [role, setRole] = useState('');
     const [subjectsFilter, setSubjectsFilter] = useState([]);
-
-    const [studentFilter, setStudent] = useState('');
-    const [tutorFilter, setTutor] = useState('');
-    const [startDateFilter, setStartDate] = useState('');
-    const [sessionSubjectFilter, setSessionSubject] = useState('');
-
-//Horrid practices, will clean up hopefulyl
+    const [availabilityFilter, setAvailabilityFilter] = useState(null);
+    //Horrid practices, will clean up hopefulyl
     const inputChange = (e) => {
         hookUpdateFunctions[e.target.name](e.target.value)
     }
 
+    let user = localStorage.getItem('token');
+    let decoded;
+    if (user) {
+        try {
+            decoded = jwt.verify(user, '/NJIBYUGHBYUHIKNBJBYBTGYIUJNBGFB/')
+        }
+        catch (e) {
+            console.log(e);
+        }
+    }
+
+    const handleDayClick = (day, { selected }) => {
+        const selectedDay = selected ? undefined : day;
+        setAvailabilityFilter(selectedDay);
+    }
+
+    const availabilityCheck = (user) => {
+        let foundSameDate = false;
+        let i = 0;
+
+        while (!foundSameDate && i < user.availability.length) {
+            const date = new Date(user.availability[i++].$date);
+            foundSameDate = availabilityFilter.getDate() == date.getDate()
+                && availabilityFilter.getFullYear() == date.getFullYear()
+                && availabilityFilter.getMonth() == date.getMonth();
+        }
+
+        return foundSameDate;
+    }
 
     useEffect(() => {
         const filtered = props.users.userList.filter((user) => {
             let allChecks = true;
+
             allChecks = nameFilter ? (user.full_name.toLowerCase().includes(nameFilter.toLowerCase()) ? allChecks : false) : allChecks;
+
             allChecks = emailFilter ? (user.email.toLowerCase().includes(emailFilter.toLowerCase()) ? allChecks : false) : allChecks;
+
             allChecks = phoneFilter ? (user.us_phone_number.includes(phoneFilter) ? allChecks : false) : allChecks;
+
             allChecks = subjectsFilter.length !== 0 ? ((user.tutor_subjects &&
                 subjectsFilter.every((element) => user.tutor_subjects.includes(element)))
                 || (user.problem_subjects && subjectsFilter.every((element) => user.problem_subjects.includes(element))) ? allChecks : false) : allChecks;
+
             allChecks = usernameFilter ? (user.username.toLowerCase().includes(usernameFilter.toLowerCase()) ? allChecks : false) : allChecks;
+
             allChecks = role ? (user.roles.includes(role) ? allChecks : false) : allChecks;
+
+            allChecks = availabilityFilter ? (availabilityCheck(user) ? allChecks : false) : allChecks;
             return allChecks;
         })
 
 
         props.setUsers({ ...props.users, filtered: filtered, displayed: (props.offset + props.perPage >= filtered.length ? filtered.slice(props.offset, filtered.length) : filtered.slice(props.offset, props.offset + props.perPage)) })
 
-    }, [nameFilter, emailFilter, usernameFilter, phoneFilter, role, subjectsFilter])
+    }, [nameFilter, emailFilter, usernameFilter, phoneFilter, role, subjectsFilter, availabilityFilter])
 
- 
+
     const setCheckFilter = (value) => {
         if (subjectsFilter.includes(value)) {
             setSubjectsFilter(subjectsFilter.filter(element => element != value));
@@ -65,62 +100,44 @@ const Filters = (props) => {
         "setPhoneFilter": setPhoneFilter,
         "setRoleFilter": setRoleFilter,
         "setSubjectsFilter": setCheckFilter,
-        "setModeFilter": props.setMode
     }
-
-    const subjectsFilterRender = (problem) => {
-        const subjectsFilter = ['Math', 'Physics', 'Chemistry', 'Biology', 'English', 'History', 'Computer Science']
-        let id = problem ? "problem" : "best"
-        return (
-            <div className="checkboxes">
-                <Form.Group controlId={`math ${id}`}>
-                    <Form.Check type="checkbox" value="Math" label="Math" name="setSubjectsFilter" onChange={inputChange} />
-                </Form.Group>
-                <Form.Group controlId={`physics ${id}`}>
-                    <Form.Check type="checkbox" value="Physics" label="Physics" name="setSubjectsFilter" onChange={inputChange} />
-                </Form.Group>
-                <Form.Group controlId={`chemistry ${id}`}>
-                    <Form.Check type="checkbox" value="Chemistry" label="Chemistry" name="setSubjectsFilter" onChange={inputChange} />
-                </Form.Group>
-                <Form.Group controlId={`biology ${id}`}>
-                    <Form.Check type="checkbox" value="Biology" label="Biology" name="setSubjectsFilter" onChange={inputChange} />
-                </Form.Group>
-                <Form.Group controlId={`english ${id}`}>
-                    <Form.Check type="checkbox" value="English" label="English" name="setSubjectsFilter" onChange={inputChange} />
-                </Form.Group>
-                <Form.Group controlId={`history ${id}`}>
-                    <Form.Check type="checkbox" value="History" label="History" name="setSubjectsFilter" onChange={inputChange} />
-                </Form.Group>
-                <Form.Group controlId={`compsci ${id}`}>
-                    <Form.Check type="checkbox" value="Computer Science" name="setSubjectsFilter" label="Computer Science" onChange={inputChange} />
-                </Form.Group>
-            </div>
-        )
-    }
-
-
     return (
         <div className="filtering">
-            <Form>
+            <Form className="form-comp">
                 <Row>
                     <Col>
                         <Form.Group>
                             <Form.Label>Name</Form.Label>
                             <FormControl className="search-input" type="text" name="setNameFilter" onChange={inputChange} />
-                            <Form.Label>Email</Form.Label>
-                            <FormControl className="search-input" type="text" name="setEmailFilter" onChange={inputChange} />
+                            {decoded.rls.includes('admin') && (<div>
+                                <Form.Label>Email</Form.Label>
+                                <FormControl className="search-input" type="text" name="setEmailFilter" onChange={inputChange} />
+                            </div>)}
                         </Form.Group>
                     </Col>
 
                     <Col>
                         <Form.Label>Username</Form.Label>
                         <FormControl className="search-input" type="text" name="setUsernameFilter" onChange={inputChange} />
-                        <Form.Label>Phone # (Stored in format xxx-xxx-xxxx)</Form.Label>
-                        <FormControl className="search-input" type="text" name="setPhoneFilter" onChange={inputChange} />
+
+                        {decoded.rls.includes('admin') && (<div>
+                            <Form.Label>Phone # (Stored in format xxx-xxx-xxxx)</Form.Label>
+                            <FormControl className="search-input" type="text" name="setPhoneFilter" onChange={inputChange} />
+                        </div>)}
                     </Col>
                 </Row>
                 <Row>
-                    {subjectsFilterRender()}
+                   <Subjects checkboxes={true} onChange={inputChange}/>
+                </Row>
+                <Row>
+                    <DayPickerInput
+                        className="calendar"
+                        format="M/D/YYYY"
+                        name="setStartDateFilter"
+                        id="date"
+                        onDayChange={handleDayClick}
+                        value={availabilityFilter}
+                    />
                 </Row>
                 <Row>
                     <Form.Group className="radios" controlId="role">
@@ -150,29 +167,6 @@ const Filters = (props) => {
                             type="radio"
                             id="both"
                             onClick={setRoleFilter}
-                        />
-                    </Form.Group>
-                </Row>
-                <Row>
-                    <Form.Group className="radios">
-                        <Form.Check
-                            inline
-                            value="user"
-                            name="setModeFilter"
-                            label="User View"
-                            type="radio"
-                            id="mode"
-                            checked={(props.mode === "user")}
-                            onClick={inputChange}
-                        />
-                        <Form.Check
-                            inline
-                            value="session"
-                            name="setModeFilter"
-                            label="Session View"
-                            type="radio"
-                            id="mode"
-                            onClick={inputChange}
                         />
                     </Form.Group>
                 </Row>
