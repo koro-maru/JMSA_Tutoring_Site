@@ -1,21 +1,16 @@
-.message_form {
-    padding: 3em;
-    background-color: rgba(255, 255, 255, 0.192);
-    width: 50%;
-    margin: 0 auto;
-}
 
-.select {
-    width: 30%
-}
-
-.message_form_input {
+.message-form-input {
     margin-top: .8rem;
     margin-bottom: .8rem;
 }
 
 .message_list {
-    display: flexbox;
+    padding: 1rem;
+    background-color: rgba(240, 248, 255, 0.137);
+    display: flex;
+    height: 60vh;
+    flex-direction: column;
+    overflow-y: scroll;
 }
 
 .flavor-text {
@@ -36,7 +31,7 @@ font-style: italic;
 
 .message_time {
 display: block;
-color: rgb(255, 235, 235)
+color: rgba(255, 235, 235, 0.432)
 }
 
 .sent, .recieved {
@@ -46,11 +41,27 @@ color: rgb(255, 235, 235)
 }
 
 .sent {
-    background-image: linear-gradient(rgb(52, 94, 231), rgb(35, 62, 182));
-    align-content: flex-start;
+   background-color: rgb(18, 18, 92);
+    align-self: flex-end;
 }
 
 .recieved {
-    background-image: linear-gradient(rgb(145, 52, 63),rgb(70, 15, 21));
-    align-content: flex-end;
+   background-color: rgb(31, 126, 102);
+    align-self: flex-start;
+}
+
+@media only screen and (min-width: 501px) {
+  .message {
+      width: 25rem;
+  }
+  }
+  
+@media only screen and (max-width: 500px) {
+  .recieved{
+     align-self: center;
+  }
+
+  .sent {
+      align-self: center;
+  }
 }

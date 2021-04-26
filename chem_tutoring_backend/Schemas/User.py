@@ -8,15 +8,15 @@ class User(Document):
     id=ObjectIdField(primary_key=True)
     email = EmailField(unique=True,required=True)
     username = StringField(unique=True, required=True)
-    us_phone_number = StringField(required=False)
+    us_phone_number = StringField(required=True)
     tutor_subjects=ListField(StringField(), default=list)
     problem_subjects=ListField(StringField(), default=list)
     hashed_password = StringField(required=True)
     messages = ListField(ReferenceField("Message"), default=list)
     sessions = ListField(ReferenceField("TutoringSession"), default=list)
-    availability = ListField(DateTimeField(), required=False)
-    biography = StringField(required=False)
-    roles = StringField(required=False)
+    availability = ListField(DateTimeField(), required=False, default=list)
+    biography = StringField(required=False, default="")
+    roles = StringField(required=False, default="student")
     profile_picture=StringField(required=False)
     is_active = BooleanField()
 
@@ -40,6 +40,9 @@ class User(Document):
     @classmethod
     def lookup(cls, username):
         try:
+            print(username)
+            print(User.objects(username=username).get())
+            print("Here")
             print(User.objects.filter(Q(username=username)|Q(email=username)).get().to_json())
             return User.objects.filter(Q(username=username)|Q(email=username)).get()
         except DoesNotExist:

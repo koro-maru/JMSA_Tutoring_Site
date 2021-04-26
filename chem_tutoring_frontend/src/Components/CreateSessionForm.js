@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Form, Button, Dropdown } from 'react-bootstrap'
-import DayPicker from "react-day-picker";
+import { Form, Button } from 'react-bootstrap'
+import DayPickerInput from "react-day-picker/DayPickerInput";
 import TimePicker from 'react-time-picker'
-import {useHistory} from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import { axios_instance } from '..';
 import Select from 'react-select';
 import Subjects from './Subjects';
-import {verifyJWT} from '../utility';
+import { verifyJWT } from '../utility';
 import "../../node_modules/react-time-picker/dist/TimePicker.css";
 import "../../node_modules/react-clock/dist/Clock.css";
 
@@ -25,9 +25,9 @@ const CreateSessionForm = () => {
   useEffect(() => {
     if (jwt.rls.includes('tutor')) {
       axios_instance.get('http://127.0.0.1:5000/user/students')
-      .then(function (response) {
-        return response.data.filter(user => user.username!=jwt.username)
-       })
+        .then(function (response) {
+          return response.data.filter(user => user.username != jwt.username)
+        })
         .then(function (response) {
           console.log(response)
           set_user_list([...user_list, ...response])
@@ -39,9 +39,9 @@ const CreateSessionForm = () => {
 
     if (jwt.rls.includes('student')) {
       axios_instance.get('http://127.0.0.1:5000/user/tutors')
-      .then(function (response) {
-        return response.data.filter(user => user.username!=jwt.username)
-       })
+        .then(function (response) {
+          return response.data.filter(user => user.username != jwt.username)
+        })
         .then(function (response) {
           set_user_list([...user_list, ...response])
         })
@@ -106,11 +106,10 @@ const CreateSessionForm = () => {
     <div className="form-comp">
       <h1>Set up a Session</h1>
       <Form onSubmit={handleSubmit}>
-        {/*make dropdown a compoent*/}
-        <Subjects subject={subject} onSelect={setSubject}/>
+        <Subjects subject={subject} onSelect={setSubject} />
 
         <Form.Group controlId="session_attendee">
-          <Form.Label>{jwt.rls.includes('tutor') ?  'Student' : 'Tutor'}</Form.Label>
+          <Form.Label>{jwt.rls.includes('tutor') ? 'Student' : 'Tutor'}</Form.Label>
           <Select
             className="select center"
             onChange={handleSelect}
@@ -121,40 +120,46 @@ const CreateSessionForm = () => {
         </Form.Group>
 
         <Form.Group>
-          <Form.Label classname="block-label">Date</Form.Label>
+          <Form.Label className="block-label">Date</Form.Label>
           <div>
-            <DayPicker
+            <DayPickerInput
               className="calendar"
               disabledDays={{ before: new Date() }}
               format="M/D/YYYY"
               name="date"
               id="date"
+              inputProps={
+                { required: true }
+              } 
               onDayClick={handleDayClick}
               selectedDays={date}
             />
           </div>
         </Form.Group>
 
-        <Form.Group>
+        <div>
           <Form.Label className="block-label">Start Time: </Form.Label>
           <TimePicker
             name="time"
             id="time"
+            required={true}
+            disableClock={true}
             onChange={onTimeChange}
             value={time}
           />
-        </Form.Group>
 
-        <Form.Group>
+
+
           <Form.Label className="block-label">End Time: </Form.Label>
           <TimePicker
             name="end_time"
             id="end_time"
+            required={true}
+            disableClock={true}
             onChange={onEndTimeChange}
             value={endTime}
           />
-        </Form.Group>
-
+        </div>
         <Button variant="primary" type="submit">Submit</Button>
       </Form>
     </div>);

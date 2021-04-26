@@ -8,7 +8,7 @@ const parseDate = (dateInput) => {
 const parseTime = (dateInput) => {
   const date = new Date(dateInput);
   const AMPM = date.getHours() >= 12 ? "PM" : "AM";
-  return ((AMPM == "PM" ? date.getHours() - 12 : date.getHours()) + ":" + date.getMinutes() + " " + AMPM);
+  return ((date.getHours() > 12 ? date.getHours() - 12 : date.getHours()) + ":" + date.getMinutes() + " " + AMPM);
 }
 
 const subjectList = [];

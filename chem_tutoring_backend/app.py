@@ -21,6 +21,10 @@ from flask_mail import Mail;
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import ImmutableMultiDict
 from flask import send_from_directory
+from flask_socketio import SocketIO
+
+load_dotenv()
+
 
 UPLOAD_FOLDER = '/profile_pictures'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -37,25 +41,27 @@ app.config["MAIL_PASSWORD"] = os.getenv("MAIL_CONNECTION")
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 
-app.config["JWT_ACCESS_LIFESPAN"] = {"hours": 24}
-app.config["JWT_REFRESH_LIFESPAN"] = {"days": 30}
-
-
-UPLOAD_FOLDER = './profile_pictures'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-load_dotenv()
-
-guard = flask_praetorian.Praetorian()
-guard.init_app(app, User)
-
-mail = Mail(app)
-
 app.config["PRAETORIAN_EMAIL_TEMPLATE"] = './email.html'
 app.config["PRATEORIAN_CONFIRMATION_SENDER"] = "sotoemily03@gmail.com"
 app.config["PRAETORIAN_CONFIRMATION_URI"] = "localhost:3000/user/finalize_registration"
 app.config["PRAETORIAN_CONFIRMATION_SUBJECT"] = "[JMSA Tutoring] Please Verify Your Account"
+
+app.config["JWT_ACCESS_LIFESPAN"] = {"hours": 24}
+app.config["JWT_REFRESH_LIFESPAN"] = {"days": 30}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+UPLOAD_FOLDER = './profile_pictures'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+
+
+guard = flask_praetorian.Praetorian()
+guard.init_app(app, user_class=User)
+
+
+
+mail = Mail(app)
+socketio = SocketIO(app,cors_allowed_origins="http://localhost:3000", logger=True, engineio_logger=True)
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -86,7 +92,7 @@ def user_sessions(username):
 def all_sessions():
     tutor_sessions = TutoringSession.objects().all()
     return tutor_sessions.to_json()
-
+#rtc data
 
 @app.route('/user/sessions/new', methods=['GET', 'POST'])
 @cross_origin(supports_credentials=True)
@@ -137,12 +143,15 @@ def session_edit(id):
     session_to_edit = TutoringSession.objects.get(id=id)
 
     if request.method == "POST":
+            print(request.json)
             session_to_edit.date=datetime.strptime(request.json['date'], "%m/%d/%Y %I:%M %p") if 'date' in request.json else session_to_edit.date
             session_to_edit.subject = request.json['subject'] if 'subject' in request.json else session_to_edit.subject
             session_to_edit.end_time = datetime.strptime(request.json['end_time'], "%m/%d/%Y %I:%M %p") if 'end_time' in request.json else session_to_edit.end_time
             session_to_edit.tutor_confirmed = request.json['tutor_confirmed'] if 'tutor_confirmed' in request.json else session_to_edit.tutor_confirmed
             session_to_edit.student_confirmed = request.json['student_confirmed'] if 'student_confirmed' in request.json else session_to_edit.student_confirmed
             session_to_edit.save()
+            print("T" , session_to_edit.tutor_confirmed)
+            print("S" , session_to_edit.student_confirmed)
             return session_to_edit.to_json();
     if request.method == "DELETE":
         session_to_edit.delete()
@@ -170,7 +179,7 @@ def chat(username, recipient):
            user.messages.append(message)
            user.save()
            recipient.save() 
-           return message.to_json();
+           return message.to_json()
        elif request.method=="GET":
            return Message.objects.filter(Q(recipient=recipient) & Q(sender=user.id) | Q(sender=recipient) & Q(recipient=user.id)).to_json()
     except Exception as e:
@@ -182,6 +191,7 @@ def chat(username, recipient):
 def login_page():
     try:
         if request.method == "POST":
+            print(request.json)
             user = guard.authenticate(username=request.json['username'], password=request.json['password'])
             if(user and user.is_active):
                 user.id = str(user.id)
@@ -194,6 +204,7 @@ def login_page():
 
     except Exception as e:
         print(e)
+        print(traceback.print_exc)
         return 'Invalid credentials', 401
 
 def allowed_file(filename):
@@ -202,19 +213,30 @@ def allowed_file(filename):
 
 @app.route('/user/sign_up', methods=['GET', 'POST'])
 def api_sign_up():
+    #definitely try and fix up that double replace D: !
     try:
         if request.method == 'POST':
+            print(request.form)
             user = User()
             user.id=ObjectId()
-            user.username = request.form.get('username')
-            user.full_name = request.form.get('full_name')
-            user.hashed_password = request.form.get('password')
-            user.roles = request.form.get('roles')
-            user.us_phone_number = request.form.get('us_phone_number')
-            user.availability = parse_dates(request.form.getlist('availability'))
-            user.email = request.form.get('email')
-            user.biography = request.form.get('biography')
-            profile_picture = request.files['profile_picture']
+            if 'username' in request.form:
+                user.username = request.form.get('username')
+            if 'full_name' in request.form:
+                user.full_name = request.form.get('full_name')
+            if 'password' in request.form:
+                user.hashed_password = request.form.get('password')
+            if 'roles' in request.form:
+                user.roles = request.form.get('roles')
+            if 'us_phone_number' in request.form:
+                user.us_phone_number = request.form.get('us_phone_number')
+            if 'availability' in request.form:
+                user.availability = parse_dates(str(request.form.getlist('availability')).replace("['", "").replace("']", "").split(','))
+            if 'email' in request.form:
+                user.email = request.form.get('email')
+            if 'biography' in request.form:
+              user.biography = request.form.get('biography')
+            if 'profile_picture' in request.form:
+                profile_picture = request.files['profile_picture']
 
             if profile_picture and allowed_file(profile_picture.filename):
                 filename = secure_filename(profile_picture.filename)
@@ -344,7 +366,6 @@ def delete_subject(id):
   return ("Success", 200)
     
 
-
 @app.route('/user/<username>/tutoring_history', methods=['GET'])
 @cross_origin(supports_credentials=True)
 def tutoring_history(username):
@@ -374,6 +395,22 @@ def tutoring_history(username):
         traceback.print_exc()
         return 'Failure retrieving resources', 400
 
+@socketio.on('msg')
+def handle_message(msg):
+    print('received message: ' + msg)
 
-#is it worth having hours as a property
-app.run(debug=True)
+
+@socketio.on('image')
+def handle_image(img):
+    print('received img path: ' + img)
+    emit()   
+
+@socketio.on('connect')
+def connect():
+    print("Connectedfus")
+
+
+if __name__ == '__main__':
+   # app.run(debug=True)
+    socketio.run(app)
+    print("Running on port 5000")

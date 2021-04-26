@@ -28,7 +28,7 @@ const LoginForm = (props) => {
       }
     }
 
-    axios_instance.post('user/sign_in', user, config)
+    axios_instance.post('/user/sign_in', user, config)
       .then(function (response) {
         if (response.data.access_token) {
           jwt.verify(response.data.access_token, '/NJIBYUGHBYUHIKNBJBYBTGYIUJNBGFB/', () => {

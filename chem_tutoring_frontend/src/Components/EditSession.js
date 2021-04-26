@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Button, Dropdown } from 'react-bootstrap'
 import { useHistory } from "react-router-dom";
-import DayPicker, { DateUtils } from "react-day-picker";
+import DayPickerInput from 'react-day-picker/DayPickerInput';
 import { axios_instance } from '..';
 import Select from 'react-select'
 import "../../node_modules/react-time-picker/dist/TimePicker.css";
@@ -47,7 +47,7 @@ const EditSessionForm = (props) => {
         }
       }
 
-      axios_instance.post(`/user/sessions/${session._id.$oid}/edit`, {...edited_session, tutor_confirmed: false, student_confirmed: false}, config)
+      axios_instance.post(`/user/sessions/${session._id.$oid}/edit`, { ...edited_session, tutor_confirmed: false, student_confirmed: false }, config)
         .then(() => {
           history.push(`/`)
         })
@@ -96,56 +96,60 @@ const EditSessionForm = (props) => {
   }
 
   return (
-    <div className="form-comp">
-      <h1>Edit Session</h1>
-      <span className="errors">{errors}</span>
-      <Form onSubmit={handleSubmit}>
-        <Subjects onSelect={onDropdownSelect} subject={session.subject} />
-        <Form.Group controlId="tutor">
-          <Form.Label>Tutor</Form.Label>
-          <Form.Control type="text" value={session.tutor.username} />
-        </Form.Group>
+    <div className="form-comp-container">
+      <div className="form-comp">
+        <h1>Edit Session</h1>
+        <span className="errors">{errors}</span>
+        <Form onSubmit={handleSubmit}>
+          <Subjects onSelect={onDropdownSelect} subject={session.subject} />
+          <Form.Group controlId="tutor">
+            <Form.Label>Tutor</Form.Label>
+            <Form.Control type="text" value={session.tutor.username} />
+          </Form.Group>
 
-        <Form.Group controlId="student">
-          <Form.Label>Student</Form.Label>
-          <Form.Control type="text" value={session.student.username} />
-        </Form.Group>
+          <Form.Group controlId="student">
+            <Form.Label>Student</Form.Label>
+            <Form.Control type="text" value={session.student.username} />
+          </Form.Group>
 
-        <Form.Group>
-          <Form.Label>Date</Form.Label>
-          <DayPicker
-            className="calendar"
-            // disabledDays={{ before: new Date() }}
-            format="M/D/YYYY"
-            name="date"
-            id="date"
-            onDayClick={handleDayClick}
-            selectedDays={new Date(session.date)}
-          />
-        </Form.Group>
+          <Form.Group>
+            <Form.Label>Date</Form.Label>
+            <DayPickerInput
+              className="calendar"
+              // disabledDays={{ before: new Date() }}
+              format="M/D/YYYY"
+              name="date"
+              id="date"
+              onDayClick={handleDayClick}
+              selectedDays={new Date(session.date)}
+            />
+          </Form.Group>
 
-        <Form.Group>
-          <Form.Label className="block-label">Start Time</Form.Label>
-          <TimePicker
-            name="time"
-            id="time"
-            onChange={onTimeChange}
-            value={time}
-          />
-        </Form.Group>
+          <Form.Group>
+            <Form.Label className="block-label">Start Time</Form.Label>
+            <TimePicker
+              name="time"
+              id="time"
+              disableClock={true}
+              onChange={onTimeChange}
+              value={time}
+            />
+          </Form.Group>
 
-        <Form.Group>
-          <Form.Label className="block-label">End Time</Form.Label>
-          <TimePicker
-            name="end_time"
-            id="end_time"
-            onChange={onEndTimeChange}
-            value={endTime}
-          />
-        </Form.Group>
+          <Form.Group>
+            <Form.Label className="block-label">End Time</Form.Label>
+            <TimePicker
+              name="end_time"
+              id="end_time"
+              disableClock={true}
+              onChange={onEndTimeChange}
+              value={endTime}
+            />
+          </Form.Group>
 
-        <Button variant="primary" type="submit">Submit</Button>
-      </Form>
+          <Button variant="primary" type="submit">Submit</Button>
+        </Form>
+      </div>
     </div>);
 }
 

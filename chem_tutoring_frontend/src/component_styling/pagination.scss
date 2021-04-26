@@ -1,12 +1,10 @@
-$cool-blue: rgb(84, 116, 223);
-$off-white: rgb(243, 233, 210);
-
 
 .pagination {
     display: flex;
     flex-direction: row;;
     justify-content: center;
     text-align: center;
+    justify-self: end;
     margin-top: 1.5rem;
     padding: .2rem;
 }
@@ -16,14 +14,20 @@ $off-white: rgb(243, 233, 210);
 .next {
     color: white;
     border-radius: 0.5rem;
-    background-color: $cool-blue;
-    padding: 0.3rem;
+    background-color: rgba(34, 155, 211, 0.904);
+    padding: .5rem;
 }
 
 .disabled {
-    background-color: darken($cool-blue, 30%);
-    border-color: #ddd;
+    color: transparent;
+    background-color: transparent;
 }
+
+.disabled:hover {
+    color: transparent;
+    background-color: transparent;
+}
+
 
 .pagination > li > a{
     margin-left: .5rem;
@@ -34,11 +38,12 @@ $off-white: rgb(243, 233, 210);
 }
 
 .pagination > .active > a {
-    color: cornflowerblue
+    transform: scale(130%);
+    color: rgb(124, 243, 175);
 }
 
 .pagination > li > a:hover {
-    background-color: darken($cool-blue, 10%);
+   color: yellow;
     border-radius: .4rem;
 }
 

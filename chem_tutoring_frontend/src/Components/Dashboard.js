@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { axios_instance } from '..'
 import UserCard from './UserCard'
-import { Container, Row, Col } from 'react-bootstrap'
 import ReactPaginate from 'react-paginate'
-import { Form, FormControl } from 'react-bootstrap'
-import { Subjects } from './Subjects'
-import { NonceProvider } from 'react-select'
+import { Form } from 'react-bootstrap'
 import ReactLoading from 'react-loading';
 import Filters from './Filters'
 import {verifyJWT} from '../utility'
@@ -132,7 +129,7 @@ const Dashboard = (props) => {
     <div>
       <h1>Users</h1>
       <div>
-        <Filters  users={userList} offset={offset} perPage={perPage} setUsers={setUserlist} />
+        <Filters users={userList} offset={offset} perPage={perPage} setUsers={setUserlist} />
         {
           jwt.rls.includes("tutor") && jwt.rls.includes("student") ? (
             <Form className="form-comp">

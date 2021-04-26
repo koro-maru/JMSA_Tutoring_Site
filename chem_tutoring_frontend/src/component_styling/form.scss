@@ -1,11 +1,23 @@
 $transparent-gray: rgba(255, 255, 255, 0.192);
 
-.form-comp{
-    padding: 3em;
-    background-color:$transparent-gray;
+.form-comp {
+    padding: 3rem;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    flex-flow: column;
+    width: fit-content;
+    background-color: $transparent-gray;
     margin: 0 auto;
-    width: 50%;
 }
+
+
+.form-group{
+    margin: 0 auto;
+    width: 40vw;
+}
+
+
 
 .select {
     color: black;
@@ -14,7 +26,8 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
 .dropdown {
     margin-bottom: 1rem;
 }
-.dropdown, .select {
+.dropdown,
+.select {
     position: static;
 }
 
@@ -23,17 +36,17 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
 }
 
 .dropdown span {
-    color: white;
+    color: black;
 }
 
 .center {
     margin: 0 auto;
 }
 
-.react-time-picker__wrapper{
-    margin: .5rem;
-   background-color: white;
-    border:  none !important; 
+.react-time-picker__wrapper {
+    margin: 0.5rem;
+    background-color: white;
+    border: none !important;
 }
 
 .react-time-picker__inputGroup__divider {
@@ -43,7 +56,6 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
 .react-select__menu {
     color: black;
 }
-
 
 .checkboxes {
     margin: 0 auto;
@@ -64,7 +76,7 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
     display: block;
 }
 .form-check-label {
-    margin-right: .5rem;
+    margin-right: 0.5rem;
 }
 
 .search-input {
@@ -74,7 +86,16 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
 
 .calendar {
     color: black !important;
-    background-color:$transparent-gray
+    background-color: $transparent-gray;
+}
+
+.DayPickerInput {
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.DayPickerInput input {
+    width: 100%;
 }
 
 .DayPicker-Weekday,
@@ -85,60 +106,71 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
     color: black;
 }
 
-
 .react-select__single-value,
-
 .react-select__placeholder {
     position: static;
     top: auto;
     left: auto;
     transform: none;
     max-width: none;
-  }
+}
 
-  .react-select__value-container > div {
+.react-select__value-container > div {
     width: auto !important;
-  }
-  
-  table {
-      margin: 1rem auto;
-      padding: .2rem;
-  }
+}
 
-  th {
-      background-color: rgb(25, 28, 71);
-      padding: .2rem;
-  }
-  td {
-      border-style: solid;
-      border-width: .1rem;
-      background-color: $transparent-gray;
-      padding: 1rem;
-  }
+table {
+    margin: 1rem auto;
+    padding: 0.2rem;
+}
 
-  .react-time-picker__wrapper{
-    padding: .2rem;
-    border-radius: .2rem;
-  }
-  
+th {
+    background-color: rgb(25, 28, 71);
+    padding: 0.2rem;
+}
+td {
+    border-style: solid;
+    border-width: 0.1rem;
+    background-color: $transparent-gray;
+    padding: 1rem;
+}
+
+.react-time-picker__wrapper {
+    padding: 0.2rem;
+    border-radius: 0.2rem;
+}
+
 .delete-link:hover {
     text-decoration: underline;
 }
 
 .subjects {
-    margin: 1rem;
     padding: 1rem;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-evenly;
-
+    justify-content: center;
 }
 
+.btn {
+    margin: 0 auto;
+
+}
 .subject {
-    padding: .5rem;
+    padding: 0.5rem;
 }
-@media only screen and (max-width: 600px) {
-    .subjects{ 
+@media only screen and (max-width: 700px) {
+    .subjects {
         flex-direction: column;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    Form.Label {
+        font-size: 1.2rem;
+    }
+
+    .calendar {
+        font-size: .85rem;
+        width: 100%;
     }
 }

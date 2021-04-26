@@ -10,7 +10,16 @@ html {
     overflow-x: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
         "Droid Sans", "Helvetica Neue", sans-serif;
-    background: url("../../../chem_tutoring_frontend/public/galaxy.jpg") no-repeat center center fixed;
+    background: no-repeat center center fixed;
+    // background: -moz-linear-gradient(180deg, rgba(2, 0, 36, 1) 0%, rgba(41, 78, 187, 1) 67%, rgba(0, 212, 255, 1) 100%);
+    // background: -webkit-linear-gradient(
+    //     180deg,
+    //     rgba(2, 0, 36, 1) 0%,
+    //     rgba(41, 78, 187, 1) 67%,
+    //     rgba(0, 212, 255, 1) 100%
+    // );
+    background: linear-gradient(180deg, rgb(28, 23, 107) 0%, rgba(41, 78, 187, 1) 67%, rgba(0, 212, 255, 1) 100%) no-repeat center center fixed;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#020024",endColorstr="#00d4ff",GradientType=1);
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -87,41 +96,46 @@ hr {
 h1 {
     display: block;
     font-size: 3em;
-    margin-block-start: .67em;
-    margin-block-end: .67em;
-  }
-  
-  h2 {
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+}
+
+h2 {
     display: block;
     font-size: 2em;
-    margin-block-start: .67em;
-    margin-block-end: .67em;
-  }
-  
-  h3 {
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+}
+
+h3 {
     display: block;
     font-size: 1.8em;
-    margin-block-start: .67em;
-    margin-block-end: .67em;
-  }
-  
-  h4{
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+}
+
+h4 {
     display: block;
-    font-size: 1.00em;
+    font-size: 1em;
     font-weight: bold;
     margin-block-start: 1.33em;
     margin-block-end: 1.33em;
-  }
+}
 
-  p {
-      display: block;
-      margin-block-start: .67rem;
-      margin-block-end: .67rem;
-  }
+p {
+    display: block;
+    margin-block-start: 0.67rem;
+    margin-block-end: 0.67rem;
+}
 
-  span {
-      display: inline;
-      margin-block-start: .67rem;
-      margin-block-end: .67rem;
-  }
+span {
+    display: inline;
+    margin-block-start: 0.67rem;
+    margin-block-end: 0.67rem;
+}
 
+@media only screen and (max-width: 500px) {
+    h1 {
+        font-size: 3rem;
+    }
+}

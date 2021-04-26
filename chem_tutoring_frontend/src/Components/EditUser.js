@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Form, Button } from 'react-bootstrap'
 import { useParams, useHistory } from "react-router-dom";
-import DayPicker, { DateUtils } from "react-day-picker";
+import{ DateUtils } from "react-day-picker";
+import DayPickerInput from 'react-day-picker/DayPickerInput';
 import { axios_instance } from '..';
 import { verifyJWT } from '../utility';
 
@@ -99,9 +100,9 @@ const EditUser = (props) => {
   }
 
   return (
-    <div className="form-comp">
+    <div >
       <h1>Edit</h1>
-      <Form onSubmit={handleSubmit}>
+      <Form className="form-comp" onSubmit={handleSubmit}>
         <Form.Group controlId="email">
           <Form.Label>Email address</Form.Label>
           <Form.Control type="email" value={user.email || ' '} onChange={handleChange} />
@@ -154,7 +155,7 @@ const EditUser = (props) => {
 
         <Form.Group controlId="availability">
           <Form.Label>Availability</Form.Label>
-          <DayPicker
+          <DayPickerInput
             className="calendar"
             format="MM/DD/YYYY"
             name="availability"

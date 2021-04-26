@@ -6,7 +6,10 @@ import Select from 'react-select';
 import jwt_decode from 'jwt-decode'
 import ReactLoading from 'react-loading';
 import ReactPaginate from 'react-paginate';
-import {parseDate, verifyJWT} from '../utility'
+import { parseDate, verifyJWT } from '../utility'
+import io from 'socket.io-client'
+
+
 const Chat = () => {
   const jwt = verifyJWT();
   const { username } = useParams();
@@ -18,16 +21,17 @@ const Chat = () => {
   const [recipient, set_recipient] = useState(undefined);
   const [loading, setLoading] = useState(false);
   const [offset, setOffset] = useState(0);
-  const perPage = 10;
+  const perPage = 30;
   let pageCount = Math.ceil(messages.messages.length) / perPage;
+  let socket;
+  socket = io.connect("http://127.0.0.1:5000");
 
-
-  useEffect(()=>{
+  useEffect(() => {
     console.log(messages.messages, messages.messages.slice(offset, offset + perPage))
-   set_messages({
-     ...messages,
-     displayed: (offset + perPage >= messages.messages.length ? messages.messages.slice(offset, messages.messages.length) : messages.messages.slice(offset, offset + perPage))
-   })
+    set_messages({
+      ...messages,
+      displayed: (offset + perPage >= messages.messages.length ? messages.messages.slice(offset, messages.messages.length) : messages.messages.slice(offset, offset + perPage))
+    })
   }, [offset])
 
   const config = {
@@ -41,7 +45,6 @@ const Chat = () => {
   }
 
   useEffect(() => {
-    //Two ifs do not work? Must call axios twice in one if or else one is not considered? 
     if (jwt.rls.includes('student') && jwt.rls.includes('tutor')) {
       axios_instance.get('http://127.0.0.1:5000/user')
         .then(function (response) {
@@ -80,6 +83,7 @@ const Chat = () => {
           console.log(error);
         });
     }
+
   }, [])
 
   useEffect(() => {
@@ -92,7 +96,7 @@ const Chat = () => {
         (() => axios_instance.get(`http://127.0.0.1:5000/user/${username}/chat/${recipient._id.$oid}`, config))
         .then((res) => {
           if (res.data) {
-            set_messages({displayed: (offset + perPage >= res.data.length ? res.data.slice(offset, res.data.length) : res.data.slice(offset, offset + perPage)), messages: [...res.data]});
+            set_messages({ displayed: (offset + perPage >= res.data.length ? res.data.slice(offset, res.data.length) : res.data.slice(offset, offset + perPage)), messages: [...res.data] });
           }
         })
         .then(() => {
@@ -106,6 +110,7 @@ const Chat = () => {
 
 
   const handleSubmit = (e) => {
+
     e.preventDefault();
     const config = {
       headers: {
@@ -122,9 +127,14 @@ const Chat = () => {
     axios_instance.post(`http://127.0.0.1:5000/user/${username}/chat/${recipient._id.$oid}`, message, config)
       .then((res) => {
         const newArr = [...messages.messages, res.data]
+        if (socket) {
+          console.log("hi")
+          // socket.emit("msg", res.data)
+        }
         set_messages({
           displayed: (offset + perPage >= newArr.length ? newArr.slice(offset, newArr.length) : newArr.slice(offset, offset + perPage)),
-          messages: newArr});
+          messages: newArr
+        });
       })
       .catch((err) => {
         console.log(err)
@@ -133,7 +143,8 @@ const Chat = () => {
   }
 
   const handleSelect = (selected) => {
-    set_recipient(selected)
+    const selectedUser = selected == recipient ? undefined : selected;
+    set_recipient(selectedUser)
     set_messages({
       displayed: [],
       messages: []
@@ -163,10 +174,17 @@ const Chat = () => {
   })
 
 
+  if (socket) {
+    socket.on('msg', (msg) => {
+      console.log(msg)
+      set_messages({ ...messages, messages: [...messages.messages, msg] });
+    })
+  }
+
   return (
-    <Form onSubmit={handleSubmit} className="message_form">
+    <Form onSubmit={handleSubmit} className="form-comp">
       {recipient ? <div>
-        <h2 class="username">{recipient.username}</h2>
+        <h2 className="username">{recipient.username}</h2>
         {loading && <ReactLoading type={"spin"} color={"white"} height={'10%'} width={'10%'} className="loading_spinner" />}
         <div >{message_list.length !== 0 ?
           <div className="message_list">
@@ -186,9 +204,9 @@ const Chat = () => {
           </div> :
           <span class="flavor-text">Start a conversation</span>}</div>
       </div>
-        : <div> <h2>Chat</h2><span class="flavor-text">Select someone to chat with.</span></div>}
+        : <div> <h1>Chat</h1><span class="flavor-text">Select someone to chat with.</span></div>}
 
-      <div className="message_form_input">
+      <div className="message-form-input">
         <div>
           <Select
             menuPortalTarget={document.querySelector('body')}

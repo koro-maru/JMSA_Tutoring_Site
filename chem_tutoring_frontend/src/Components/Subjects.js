@@ -26,17 +26,17 @@ const Subjects = (props) => {
 
   //Maybe just add subjects to db?
   return (
-    <div>
+    <div className="center">
       { props.checkboxes ? (
-        <div className="checkboxes">
-         { subjects.map((element) =>  <Form.Check type="checkbox" value={element.subject} label={element.subject} name="setSubjectsFilter" onChange={props.inputChange} />)} 
+        <div className="checkboxes subjects">
+         { subjects.map((element) =>  <Form.Check type="checkbox" key={element.subject}value={element.subject} label={element.subject} name="setSubjectsFilter" onChange={props.onCheck} />)} 
         </div>
       ) : (<Dropdown onSelect={onDropdownSelect}>
         <Dropdown.Toggle variant="success" className="subject">
           <span> {props.subject ? props.subject : "Subject"}</span>
         </Dropdown.Toggle>
         <Dropdown.Menu>
-          {subjects.map(element => (<Dropdown.Item eventKey={element.subject}>{element.subject}</Dropdown.Item>),)}
+          {subjects.map(element => (<Dropdown.Item eventKey={element.subject}><span>{element.subject}</span></Dropdown.Item>),)}
         </Dropdown.Menu>
       </Dropdown>)
       }

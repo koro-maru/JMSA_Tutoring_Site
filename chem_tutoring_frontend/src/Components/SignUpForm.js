@@ -11,54 +11,84 @@ const SignUpForm = () => {
   const [bestSubjects, setBestSubjects] = useState([]);
   const [problemSubjects, setProblemSubjects] = useState([]);
 
+  const requiredFields = ["role", "full_name", "username", "password", "us_phone_number"]
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const email = e.target.email.value;
-    const full_name = e.target.full_name.value;
-    const username = e.target.username.value;
-    const password = e.target.password.value;
-    const biography = e.target.biography ? e.target.biography.value : '';
-    const us_phone_number = e.target.us_phone_number.value;
-    const meeting_link = e.target.meeting_link ? e.target.meeting_link.value : ' ';
-    const profile_picture = e.target.profile_picture.files[0];
+    errorChecker(e);
+    if (errors.length === 0) {
+      const email = e.target.email.value;
+      const full_name = e.target.full_name.value;
+      const username = e.target.username.value;
+      const password = e.target.password.value;
+      const biography = e.target.biography ? e.target.biography.value : '';
+      const us_phone_number = e.target.us_phone_number.value;
+      const meeting_link = e.target.meeting_link ? e.target.meeting_link.value : ' ';
+      const profile_picture = e.target.profile_picture.files[0];
 
-    const bodyFormData = new FormData();
+      const bodyFormData = new FormData();
 
-    bodyFormData.append("email", email);
-    bodyFormData.append('full_name', full_name);
-    bodyFormData.append('password', password);
-    bodyFormData.append('us_phone_number', us_phone_number);
-    bodyFormData.append('profile_picture', profile_picture);
-    bodyFormData.append('biography', biography)
-    bodyFormData.append('username', username);
-    bodyFormData.append('availability', dates.map((date) => {
-      console.log(date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear())
-      return date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
-    }));
+      bodyFormData.append("email", email);
+      bodyFormData.append('full_name', full_name);
+      bodyFormData.append('password', password);
+      bodyFormData.append('us_phone_number', us_phone_number);
+      bodyFormData.append('profile_picture', profile_picture);
+      bodyFormData.append('biography', biography)
+      bodyFormData.append('username', username);
+      bodyFormData.append('availability', dates.map((date) => {
+        console.log(date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear())
+        return date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
+      }));
 
-    if (role.includes("tutor")) {
-      bodyFormData.append('meeting_link', meeting_link);
-      bodyFormData.append('tutor_subjects', bestSubjects);
+      if (role.includes("tutor")) {
+        bodyFormData.append('meeting_link', meeting_link);
+        bodyFormData.append('tutor_subjects', bestSubjects);
+      }
+
+      if (role.includes("student")) {
+        bodyFormData.append('problem_subjects', problemSubjects);
+      }
+
+      setSubmitted(true);
+      axios.post('http://127.0.0.1:5000/user/sign_up', bodyFormData)
+        .then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     }
-
-    if (role.includes("student")) {
-      bodyFormData.append('problem_subjects', problemSubjects);
-    }
-
-    setSubmitted(true);
-    axios.post('http://127.0.0.1:5000/user/sign_up', bodyFormData)
-      .then(function (response) {
-        console.log(response);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
   }
 
   const updateRole = (e) => {
     setRole(e.target.value)
   }
 
+  const errorChecker = (e) => {
+    let errors = false;
+    if (!role) {
+      errors = true;
+      setErrors([...errors, "Role required."])
+    }
+
+    if(!e.target.email.value){
+      errors = true;
+      setErrors([...errors, "Email required."])
+    }
+
+    if(!e.target.full_name.value){
+      setErrors([...errors, "Full name required."])
+    }
+
+    if(!e.target.username.value){
+      setErrors([...errors, "Username required."])
+    }
+
+    if(!e.target.us_phone_number.value){
+      setErrors([...errors, "Phone number required."])
+    }
+
+  }
   const handleDayClick = (day, { selected }) => {
     const arr = [...dates];
     if (selected) {
@@ -173,27 +203,27 @@ const SignUpForm = () => {
     <div className="form-comp">
       <h1>Sign Up</h1>
 
-      {errors ? <span className="form-error">{errors}</span> : null}
+      {errors && <span className="form-error">{errors}</span>}
       {submitted && errors.length === 0 ? <span className="form-text">Please check your email to finish activating your account.</span> : null}
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="email">
           <Form.Label>Email address</Form.Label>
-          <Form.Control name="email" type="email" />
+          <Form.Control name="email" type="email" required/>
         </Form.Group>
 
         <Form.Group controlId="full_name">
           <Form.Label>Full Name</Form.Label>
-          <Form.Control name="full_name" type="text" />
+          <Form.Control name="full_name" type="text" required/>
         </Form.Group>
 
         <Form.Group controlId="username">
           <Form.Label>Username</Form.Label>
-          <Form.Control name="username" type="text" />
+          <Form.Control name="username" type="text" required/>
         </Form.Group>
 
         <Form.Group controlId="password">
           <Form.Label>Password</Form.Label>
-          <Form.Control name="password" type="password" />
+          <Form.Control name="password" type="password" required/>
         </Form.Group>
 
         <Form.Group controlId="us_phone_number">

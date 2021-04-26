@@ -1,9 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Form, FormControl, Dropdown, Col, Row, Pagination } from 'react-bootstrap'
+import { Form, FormControl, Collapse, Button, Dropdown, Col, Row, Pagination } from 'react-bootstrap'
 import jwt from 'jsonwebtoken';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import Subjects from '../Components/Subjects'
 const Filters = (props) => {
+    const [open, setOpen] = useState(false);
+
+    const [filter, setFilter] = useState({
+        nameFilter: '',
+        emailFilter: '',
+        usernameFilter: '',
+        phoneFilter: '',
+        roleFilter: '',
+        subjectsFilter: [],
+        availabilityFilter: null
+    })
+    //This will replace the long string of use states later
     const [nameFilter, setNameFilter] = useState('');
     const [emailFilter, setEmailFilter] = useState('');
     const [usernameFilter, setUsernameFilter] = useState('');
@@ -11,16 +23,19 @@ const Filters = (props) => {
     const [role, setRole] = useState('');
     const [subjectsFilter, setSubjectsFilter] = useState([]);
     const [availabilityFilter, setAvailabilityFilter] = useState(null);
-    //Horrid practices, will clean up hopefulyl
+    //USER availability not defined
+    // not working subjects filter
+    //
+
     const inputChange = (e) => {
         hookUpdateFunctions[e.target.name](e.target.value)
     }
 
-    let user = localStorage.getItem('token');
+    let userToken = localStorage.getItem('token');
     let decoded;
-    if (user) {
+    if (userToken) {
         try {
-            decoded = jwt.verify(user, '/NJIBYUGHBYUHIKNBJBYBTGYIUJNBGFB/')
+            decoded = jwt.verify(userToken, '/NJIBYUGHBYUHIKNBJBYBTGYIUJNBGFB/')
         }
         catch (e) {
             console.log(e);
@@ -48,13 +63,14 @@ const Filters = (props) => {
 
     useEffect(() => {
         const filtered = props.users.userList.filter((user) => {
+
             let allChecks = true;
 
             allChecks = nameFilter ? (user.full_name.toLowerCase().includes(nameFilter.toLowerCase()) ? allChecks : false) : allChecks;
 
             allChecks = emailFilter ? (user.email.toLowerCase().includes(emailFilter.toLowerCase()) ? allChecks : false) : allChecks;
 
-            allChecks = phoneFilter ? (user.us_phone_number.includes(phoneFilter) ? allChecks : false) : allChecks;
+            allChecks = phoneFilter ? (user.us_phone_number.startsWith(phoneFilter) ? allChecks : false) : allChecks;
 
             allChecks = subjectsFilter.length !== 0 ? ((user.tutor_subjects &&
                 subjectsFilter.every((element) => user.tutor_subjects.includes(element)))
@@ -103,74 +119,86 @@ const Filters = (props) => {
     }
     return (
         <div className="filtering">
-            <Form className="form-comp">
-                <Row>
-                    <Col>
-                        <Form.Group>
-                            <Form.Label>Name</Form.Label>
-                            <FormControl className="search-input" type="text" name="setNameFilter" onChange={inputChange} />
-                            {decoded.rls.includes('admin') && (<div>
-                                <Form.Label>Email</Form.Label>
-                                <FormControl className="search-input" type="text" name="setEmailFilter" onChange={inputChange} />
-                            </div>)}
-                        </Form.Group>
-                    </Col>
+            <Button
+                onClick={() => setOpen(!open)}
+                aria-controls="filter-form"
+                aria-expanded={open}
+            >
+                Filter
+      </Button>
+            <Collapse in={open}>
+                <div id="filter-form" >
+                    <Form className="form-comp">
+                        <Row>
+                            <Col>
+                                <Form.Group>
+                                    <Form.Label>Name</Form.Label>
+                                    <FormControl className="search-input" type="text" name="setNameFilter" onChange={inputChange} />
+                                    {decoded.rls.includes('admin') && (<div>
+                                        <Form.Label>Email</Form.Label>
+                                        <FormControl className="search-input" type="text" name="setEmailFilter" onChange={inputChange} />
+                                    </div>)}
+                                </Form.Group>
+                            </Col>
 
-                    <Col>
-                        <Form.Label>Username</Form.Label>
-                        <FormControl className="search-input" type="text" name="setUsernameFilter" onChange={inputChange} />
+                            <Col>
+                                <Form.Label>Username</Form.Label>
+                                <FormControl className="search-input" type="text" name="setUsernameFilter" onChange={inputChange} />
 
-                        {decoded.rls.includes('admin') && (<div>
-                            <Form.Label>Phone # (Stored in format xxx-xxx-xxxx)</Form.Label>
-                            <FormControl className="search-input" type="text" name="setPhoneFilter" onChange={inputChange} />
-                        </div>)}
-                    </Col>
-                </Row>
-                <Row>
-                   <Subjects checkboxes={true} onChange={inputChange}/>
-                </Row>
-                <Row>
-                    <DayPickerInput
-                        className="calendar"
-                        format="M/D/YYYY"
-                        name="setStartDateFilter"
-                        id="date"
-                        onDayChange={handleDayClick}
-                        value={availabilityFilter}
-                    />
-                </Row>
-                <Row>
-                    <Form.Group className="radios" controlId="role">
-                        <Form.Check
-                            inline
-                            value="tutor"
-                            name="setRoleFilter"
-                            label="Tutor"
-                            type="radio"
-                            id="tutor"
-                            onClick={setRoleFilter}
-                        />
-                        <Form.Check
-                            inline
-                            value="student"
-                            name="setRoleFilter"
-                            label="Student"
-                            type="radio"
-                            id="student"
-                            onClick={setRoleFilter}
-                        />
-                        <Form.Check
-                            inline
-                            value="student,tutor"
-                            name="setRoleFilter"
-                            label="Both"
-                            type="radio"
-                            id="both"
-                            onClick={setRoleFilter}
-                        />
-                    </Form.Group>
-                </Row>
-            </Form>
+                                {decoded.rls.includes('admin') && (<div>
+                                    <Form.Label>Phone # (Stored in format xxx-xxx-xxxx)</Form.Label>
+                                    <FormControl className="search-input" type="text" name="setPhoneFilter" onChange={inputChange} />
+                                </div>)}
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Subjects checkboxes={true} name="setSubjectsFilter" onCheck={inputChange} />
+                        </Row>
+                        <Row>
+
+                            <DayPickerInput
+                                className="calendar"
+                                format="M/D/YYYY"
+                                name="setStartDateFilter"
+                                id="date"
+                                onDayChange={handleDayClick}
+                                value={availabilityFilter}
+                            />
+                        </Row>
+                        <Row>
+                            <Form.Group className="radios" controlId="role">
+                                <Form.Check
+                                    inline
+                                    value="tutor"
+                                    name="setRoleFilter"
+                                    label="Tutor"
+                                    type="radio"
+                                    id="tutor"
+                                    onClick={setRoleFilter}
+                                />
+                                <Form.Check
+                                    inline
+                                    value="student"
+                                    name="setRoleFilter"
+                                    label="Student"
+                                    type="radio"
+                                    id="student"
+                                    onClick={setRoleFilter}
+                                />
+                                <Form.Check
+                                    inline
+                                    value="student,tutor"
+                                    name="setRoleFilter"
+                                    label="Both"
+                                    type="radio"
+                                    id="both"
+                                    onClick={setRoleFilter}
+                                />
+                            </Form.Group>
+                        </Row>
+                    </Form>
+                </div>
+            </Collapse>
         </div>)
 }
 
