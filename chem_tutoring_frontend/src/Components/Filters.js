@@ -80,7 +80,7 @@ const Filters = (props) => {
 
             allChecks = role ? (user.roles.includes(role) ? allChecks : false) : allChecks;
 
-            allChecks = availabilityFilter ? (availabilityCheck(user) ? allChecks : false) : allChecks;
+            allChecks = availabilityFilter && user.availability ? (availabilityCheck(user) ? allChecks : false) : allChecks;
             return allChecks;
         })
 
@@ -120,6 +120,7 @@ const Filters = (props) => {
     return (
         <div className="filtering">
             <Button
+				id="open-filters"
                 onClick={() => setOpen(!open)}
                 aria-controls="filter-form"
                 aria-expanded={open}

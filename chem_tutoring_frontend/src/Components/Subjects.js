@@ -24,7 +24,7 @@ const Subjects = (props) => {
   }
 
 
-  //Maybe just add subjects to db?
+
   return (
     <div className="center">
       { props.checkboxes ? (
@@ -33,7 +33,7 @@ const Subjects = (props) => {
         </div>
       ) : (<Dropdown onSelect={onDropdownSelect}>
         <Dropdown.Toggle variant="success" className="subject">
-          <span> {props.subject ? props.subject : "Subject"}</span>
+          <span id="dropdown-subject"> {props.subject ? props.subject : "Subject"}</span>
         </Dropdown.Toggle>
         <Dropdown.Menu>
           {subjects.map(element => (<Dropdown.Item eventKey={element.subject}><span>{element.subject}</span></Dropdown.Item>),)}

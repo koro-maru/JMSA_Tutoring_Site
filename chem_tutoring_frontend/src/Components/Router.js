@@ -21,6 +21,7 @@ import AdminPortal from "./AdminPortal";
 import Errors from "./Errors"
 import AdminRouter from "../AdminRouter";
 import {verifyJWT} from "../utility"
+import {SocketContext, socket} from '../Hooks/socketContext'
 
 const AppRouter = () => {
   const jwt = verifyJWT();
@@ -55,18 +56,19 @@ const AppRouter = () => {
               </div>
             )
           }} />
+
           <Route exact path="/user/:username/chat" render={({ match }) => {
             return (
-              <div>
+				<SocketContext.Provider value={socket}>
                 {jwt && match.params.username == jwt.username || jwt.rls.includes('admin') ? <Chat /> : <Errors error={401} />}
-              </div>
+				</SocketContext.Provider>
             )
           }} />
           <Route path="/admin" render={({ match }) => {
             return (
               <div>
               {jwt && jwt.rls.includes('admin') ? <AdminRouter /> : <Errors error={401} />}
-              </div>
+			  </div>
             )
             }}/>
           <Route>

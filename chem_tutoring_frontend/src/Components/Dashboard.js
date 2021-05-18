@@ -117,7 +117,7 @@ const Dashboard = (props) => {
 
   const userDash = userList.displayed.map((user) => {
     return (
-      <UserCard className="user_card" key={user._id.$oid} full_name={user.full_name} username={user.username} bio={user.biography} />
+      <UserCard className="user_card" profile_picture = {user.profile_picture} key={user._id.$oid} full_name={user.full_name} username={user.username} bio={user.biography} />
     )
   })
 

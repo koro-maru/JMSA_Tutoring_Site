@@ -26,7 +26,7 @@ from flask_socketio import SocketIO
 load_dotenv()
 
 
-UPLOAD_FOLDER = '/profile_pictures'
+UPLOAD_FOLDER = 'profile_pictures'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = flask.Flask(__name__)
@@ -50,8 +50,6 @@ app.config["JWT_ACCESS_LIFESPAN"] = {"hours": 24}
 app.config["JWT_REFRESH_LIFESPAN"] = {"days": 30}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-UPLOAD_FOLDER = './profile_pictures'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 
 
@@ -150,8 +148,6 @@ def session_edit(id):
             session_to_edit.tutor_confirmed = request.json['tutor_confirmed'] if 'tutor_confirmed' in request.json else session_to_edit.tutor_confirmed
             session_to_edit.student_confirmed = request.json['student_confirmed'] if 'student_confirmed' in request.json else session_to_edit.student_confirmed
             session_to_edit.save()
-            print("T" , session_to_edit.tutor_confirmed)
-            print("S" , session_to_edit.student_confirmed)
             return session_to_edit.to_json();
     if request.method == "DELETE":
         session_to_edit.delete()
@@ -191,13 +187,11 @@ def chat(username, recipient):
 def login_page():
     try:
         if request.method == "POST":
-            print(request.json)
             user = guard.authenticate(username=request.json['username'], password=request.json['password'])
             if(user and user.is_active):
                 user.id = str(user.id)
                 ret = {"access_token": guard.encode_jwt_token(user, override_access_lifespan=None, override_refresh_lifespan=None, bypass_user_check=False, is_registration_token=False, is_reset_token=False, username=user.username)}
                 session['jwt_token'] = ret
-                print(session['jwt_token'])
                 return jsonify(ret)
         else:
             return "<h1>Invalid format. Try again<h1>"
@@ -276,7 +270,6 @@ def send_email():
 def reset_password():
     try:
         reset_token = guard.read_token_from_header()
-        print(reset_token)
         user = guard.validate_reset_token(reset_token)
         if(user):  
             user.hashed_password=guard.hash_password(request.json['password'])
@@ -294,6 +287,7 @@ def get_user(username):
     return user.to_json()
 
 @app.route('/profile_pictures/<filename>', methods=['GET'])
+@cross_origin(supports_credentials=True)
 def get_profile_picture(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'],filename,  as_attachment=True)
 
@@ -397,13 +391,7 @@ def tutoring_history(username):
 
 @socketio.on('msg')
 def handle_message(msg):
-    print('received message: ' + msg)
-
-
-@socketio.on('image')
-def handle_image(img):
-    print('received img path: ' + img)
-    emit()   
+	socketio.emit('msg', msg)  
 
 @socketio.on('connect')
 def connect():
@@ -411,6 +399,8 @@ def connect():
 
 
 if __name__ == '__main__':
-   # app.run(debug=True)
-    socketio.run(app)
+    app.run(debug=True)
+    #socketio.run(app)
     print("Running on port 5000")
+
+

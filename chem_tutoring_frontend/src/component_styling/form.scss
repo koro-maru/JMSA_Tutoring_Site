@@ -35,6 +35,9 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
     margin: 0 auto;
 }
 
+#dropdown-subject {
+	color: white;
+}
 .dropdown span {
     color: black;
 }
@@ -42,7 +45,13 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
 .center {
     margin: 0 auto;
 }
-
+#open-filters {
+	margin-bottom: 3vw;
+}
+.DayPickerInput-OverlayWrapper {
+	overflow:visible;
+	position:absolute;
+}
 .react-time-picker__wrapper {
     margin: 0.5rem;
     background-color: white;
@@ -151,6 +160,7 @@ td {
     justify-content: center;
 }
 
+
 .btn {
     margin: 0 auto;
 
@@ -158,6 +168,7 @@ td {
 .subject {
     padding: 0.5rem;
 }
+
 @media only screen and (max-width: 700px) {
     .subjects {
         flex-direction: column;
