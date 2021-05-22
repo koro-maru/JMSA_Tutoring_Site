@@ -4,6 +4,7 @@ import DayPicker, { DateUtils } from "react-day-picker";
 import axios from 'axios'
 
 const SignUpForm = () => {
+	//Profile pictures not working, must fix 
   const [dates, setDates] = useState([]);
   const [errors, setErrors] = useState([]);
   const [role, setRole] = useState('');
@@ -11,11 +12,12 @@ const SignUpForm = () => {
   const [bestSubjects, setBestSubjects] = useState([]);
   const [problemSubjects, setProblemSubjects] = useState([]);
 
-  const requiredFields = ["role", "full_name", "username", "password", "us_phone_number"]
+  const requiredFields = {"role":"Role required. ", "full_name": "Full Name required. ", "username": "Username required. ", "password":"Password required. ", "us_phone_number": "Phone required. "}
 
   const handleSubmit = (e) => {
     e.preventDefault();
     errorChecker(e);
+	window.scrollTo(0, 0)
     if (errors.length === 0) {
       const email = e.target.email.value;
       const full_name = e.target.full_name.value;
@@ -25,7 +27,8 @@ const SignUpForm = () => {
       const us_phone_number = e.target.us_phone_number.value;
       const meeting_link = e.target.meeting_link ? e.target.meeting_link.value : ' ';
       const profile_picture = e.target.profile_picture.files[0];
-
+	  console.log(e.target)
+	  console.log(profile_picture)
       const bodyFormData = new FormData();
 
       bodyFormData.append("email", email);
@@ -65,29 +68,29 @@ const SignUpForm = () => {
   }
 
   const errorChecker = (e) => {
-    let errors = false;
-    if (!role) {
-      errors = true;
-      setErrors([...errors, "Role required."])
+    if (!role && errors.indexOf("role")==-1) {
+      setErrors([...errors, "role"])
     }
 
-    if(!e.target.email.value){
-      errors = true;
-      setErrors([...errors, "Email required."])
+    if(!e.target.email.value && errors.indexOf("email")==-1){
+      setErrors([...errors, "email"])
     }
 
-    if(!e.target.full_name.value){
-      setErrors([...errors, "Full name required."])
+    if(!e.target.full_name.value && errors.indexOf("full_name")==-1){
+      setErrors([...errors, "full_name"])
     }
 
-    if(!e.target.username.value){
-      setErrors([...errors, "Username required."])
+    if(!e.target.username.value  && errors.indexOf("username")==-1){
+      setErrors([...errors, "username"])
     }
 
-    if(!e.target.us_phone_number.value){
-      setErrors([...errors, "Phone number required."])
+    if(!e.target.us_phone_number.value  && errors.indexOf("us_phone_number")==-1){
+      setErrors([...errors, "us_phone_number"])
     }
 
+	if(e.target.us_phone_number.value && e.target.email.value && e.target.username.value && e.target.full_name.value && role){
+		setErrors([])
+	}
   }
   const handleDayClick = (day, { selected }) => {
     const arr = [...dates];
@@ -199,11 +202,14 @@ const SignUpForm = () => {
     )
   }
 
+  const errorList = errors.map((errorCode)=>(
+	<p className="form-error" key={errorCode}>{requiredFields[errorCode]}</p>)
+	)
   return (
     <div className="form-comp">
       <h1>Sign Up</h1>
 
-      {errors && <span className="form-error">{errors}</span>}
+      {errorList}
       {submitted && errors.length === 0 ? <span className="form-text">Please check your email to finish activating your account.</span> : null}
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="email">
@@ -247,6 +253,7 @@ const SignUpForm = () => {
             type="radio"
             id="tutor"
             onClick={updateRole}
+			required
           />
           <Form.Check
             inline
@@ -257,6 +264,7 @@ const SignUpForm = () => {
             type="radio"
             id="student"
             onClick={updateRole}
+			required
           />
           <Form.Check
             inline
@@ -267,6 +275,7 @@ const SignUpForm = () => {
             type="radio"
             id="both"
             onClick={updateRole}
+			required
           />
         </Form.Group>
 

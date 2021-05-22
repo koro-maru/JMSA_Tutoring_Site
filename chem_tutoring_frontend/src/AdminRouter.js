@@ -8,7 +8,7 @@ const AdminRouter = () => {
     return (
     <Switch>
      <Route path="/admin/subjects" component={CreateSubject}/>
-     <Route path="/admin/portal" component={AdminPortal}/>
+     <Route path="/admin" component={AdminPortal}/>
  </Switch>)
 }
 

@@ -60,7 +60,7 @@ const AppRouter = () => {
           <Route exact path="/user/:username/chat" render={({ match }) => {
             return (
 				<SocketContext.Provider value={socket}>
-                {jwt && match.params.username == jwt.username || jwt.rls.includes('admin') ? <Chat /> : <Errors error={401} />}
+                {jwt && (match.params.username == jwt.username || jwt.rls.includes('admin')) ? <Chat /> : <Errors error={401} />}
 				</SocketContext.Provider>
             )
           }} />

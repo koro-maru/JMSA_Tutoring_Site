@@ -8,11 +8,14 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
     flex-flow: column;
     width: fit-content;
     background-color: $transparent-gray;
+	height: fit-content;
     margin: 0 auto;
+	margin-bottom: 5vh;
 }
 
 
 .form-group{
+	padding: 1vh;
     margin: 0 auto;
     width: 40vw;
 }
@@ -93,7 +96,13 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
     width: 80%;
 }
 
-.calendar {
+.DayPicker-Caption{
+	color: white;
+	padding: .5vw;
+	background-color: rgb(45, 51, 139);
+}
+
+.DayPicker-Month{
     color: black !important;
     background-color: $transparent-gray;
 }
@@ -128,7 +137,8 @@ $transparent-gray: rgba(255, 255, 255, 0.192);
     width: auto !important;
 }
 
-table {
+.table-responsive {
+	width: 80vw;
     margin: 1rem auto;
     padding: 0.2rem;
 }
@@ -159,6 +169,7 @@ td {
     flex-wrap: wrap;
     justify-content: center;
 }
+
 
 
 .btn {

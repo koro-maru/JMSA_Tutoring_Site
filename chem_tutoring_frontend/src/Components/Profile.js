@@ -36,6 +36,7 @@ const Profile = () => {
                 })
                 res.data.availability = parsed_dates;
                 set_user(res.data);
+				console.log(res.data)
             })
             .then(() => {
                 setLoading(false);

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { propTypes } from 'react-bootstrap/esm/Image';
 import { useParams } from 'react-router-dom'
 import { axios_instance } from '..'
+import {Table} from 'react-bootstrap'
 import SessionListing from './SessionListing';
 import SessionFilters from './SessionFilters'
 import ReactPaginate from 'react-paginate'
@@ -128,7 +129,7 @@ const UserSessions = (props) => {
             <div>
                 {!username && <SessionFilters sessions={sessions_list.raw_sessions} filters={filters} setFilters={setFilters} />}
                 {sessions.length !== 0 ? !username ? (
-                    <table>
+                    <Table responsive striped bordered hover variant="dark">
                         <thead>
                             <tr>
                                 <th>Student</th>
@@ -141,7 +142,7 @@ const UserSessions = (props) => {
                             <tbody>
                             {sessions}
                             </tbody>
-                    </table>
+                    </Table>
                 ) : sessions : <h3>No sessions scheduled</h3>}
             </div>
             <ReactPaginate

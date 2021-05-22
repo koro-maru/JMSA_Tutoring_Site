@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Form, Button } from 'react-bootstrap'
 import { useParams, useHistory } from "react-router-dom";
 import{ DateUtils } from "react-day-picker";
-import DayPickerInput from 'react-day-picker/DayPickerInput';
+import DayPicker from 'react-day-picker/DayPicker';
 import { axios_instance } from '..';
 import { verifyJWT } from '../utility';
 
@@ -44,15 +44,16 @@ const EditUser = (props) => {
   }
 
   const handleDayClick = (day, { selected }) => {
+    const arr = [...dates];
     if (selected) {
-      const selectedIndex = dates.findIndex(selectedDay =>
+      const selectedIndex = arr.findIndex(selectedDay =>
         DateUtils.isSameDay(selectedDay, day)
       );
-      dates.splice(selectedIndex, 1)
-      setDates(dates)
+      arr.splice(selectedIndex, 1);
+      setDates(arr);
     }
     else {
-      setDates([...dates, day])
+      setDates([...dates, day]);
     }
   }
 
@@ -64,9 +65,9 @@ const EditUser = (props) => {
   }
   const handleSubmit = (e) => {
     e.preventDefault();
-    let parsed_availability = ''
+    let parsed_availability = []
     if (dates.length!==0) {
-     parsed_availability = parse_dates(user.availability);
+     parsed_availability = parse_dates(dates);
     }
     const edited_user = {
       email: user.email,
@@ -155,15 +156,17 @@ const EditUser = (props) => {
 
         <Form.Group controlId="availability">
           <Form.Label>Availability</Form.Label>
-          <DayPickerInput
+          <DayPicker
             className="calendar"
             format="MM/DD/YYYY"
             name="availability"
             onDayClick={handleDayClick}
             selectedDays={dates}
+			disabledDays={{ before: new Date() }}
           />
 
         </Form.Group>
+		
         <Form.Group>
           <a className="delete-link" onClick={deleteUser}>Delete</a>
         </Form.Group>
